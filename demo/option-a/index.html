@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ABI Tower — Trung tâm đổi mới sáng tạo tương lai (Demo A)</title>
+<meta name="description" content="Biểu tượng văn phòng hạng A mang đậm tinh thần công nghệ tại khu đô thị Starlake.">
+<link rel="icon" href="../assets/svg/logo-color.svg">
+<link rel="stylesheet" href="../assets/css/fonts.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="hdr" id="hdr">
+  <a class="hdr-logo" href="#top" aria-label="ABI Tower">
+    <img class="logo-c" src="../assets/svg/logo-color.svg" alt="ABI Tower">
+    <img class="logo-w" src="../assets/svg/logo-white.svg" alt="" aria-hidden="true">
+  </a>
+  <nav class="hdr-nav" aria-label="Điều hướng chính">
+    <a href="#top">Trang chủ</a>
+    <a href="#gioi-thieu">About Us</a>
+    <a href="#cam-hung">Thiết kế thông minh</a>
+    <a href="#van-phong">Văn phòng</a>
+    <a href="#tien-ich">Hệ tiện ích chung</a>
+    <a href="#lien-he">Liên hệ cho thuê</a>
+  </nav>
+  <a class="btn btn-pill hdr-cta" href="#lien-he">Liên hệ thuê ngay</a>
+  <button class="hdr-burger" aria-label="Menu" aria-expanded="false"><span></span><span></span></button>
+</header>
+
+<main>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="top">
+  <div class="aurora" aria-hidden="true">
+    <i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i><i class="blob b4"></i>
+  </div>
+  <div class="hero-clouds" aria-hidden="true">
+    <div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div>
+  </div>
+  <div class="hero-copy">
+    <p class="eyebrow eyebrow-light">ABI Tower · Future Innovation Hub</p>
+    <h1 class="hero-title">
+      <span class="line"><span>Trung tâm đổi mới</span></span>
+      <span class="line"><span>sáng tạo tương lai</span></span>
+    </h1>
+  </div>
+  <figure class="hero-tower">
+    <img src="../assets/img/tower-cutout.webp" alt="Phối cảnh ABI Tower">
+  </figure>
+  <div class="hero-scroll" aria-hidden="true"><span></span></div>
+</section>
+
+<!-- ============ INTRO / PROJECT USP ============ -->
+<section class="intro" id="gioi-thieu">
+  <p class="intro-text" data-scrub>Biểu tượng văn phòng hạng A mang đậm tinh thần công nghệ tại khu đô thị Starlake, nơi quy tụ cộng đồng doanh nghiệp tiên phong đổi mới. Không chỉ là một địa điểm làm việc, tòa nhà còn góp phần hình thành một trung tâm đổi mới sáng tạo của Hà Nội, nơi các doanh nghiệp cùng kết nối và phát triển</p>
+
+  <div class="overview" role="list">
+    <figure class="ov-card is-open" role="listitem">
+      <img src="../assets/img/ext-aerial.webp" alt="ABI Tower — Exterior" loading="lazy">
+      <figcaption><span class="pill">Exterior</span></figcaption>
+    </figure>
+    <figure class="ov-card" role="listitem">
+      <img src="../assets/img/lobby.webp" alt="ABI Tower — Lobby" loading="lazy">
+      <figcaption><span class="pill">Lobby</span></figcaption>
+    </figure>
+    <figure class="ov-card" role="listitem">
+      <img src="../assets/img/office.webp" alt="ABI Tower — Office Floor" loading="lazy">
+      <figcaption><span class="pill">Office Floor</span></figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============ LOCATION ============ -->
+<section class="location" id="vi-tri">
+  <div class="loc-copy">
+    <p class="eyebrow"><span class="num">01</span> Connectivity Map</p>
+    <h2 class="h2">Vị trí</h2>
+    <p class="body">Tọa lạc tại Trung tâm đổi mới Starlake, khu Tây Hồ Tây, ABI Tower sở hữu kết nối thuận tiện với hệ sinh thái công nghệ, hành chính và thương mại của khu vực. Nhờ kết nối với Vành đai 2.5 và Vành đai 3, doanh nghiệp dễ dàng di chuyển tới trung tâm Hà Nội, các khu vực lân cận và Sân bay Quốc tế Nội Bài.</p>
+    <ul class="poi-list" id="poiList" aria-label="Địa điểm lân cận"></ul>
+  </div>
+  <div class="map-card">
+    <div class="map-viewport" id="mapViewport">
+      <div class="map-stage" id="mapStage"></div>
+    </div>
+    <div class="map-tip" id="mapTip" role="status"></div>
+    <div class="map-ctrl">
+      <button type="button" data-zoom="in" aria-label="Phóng to">+</button>
+      <button type="button" data-zoom="out" aria-label="Thu nhỏ">−</button>
+      <button type="button" data-zoom="reset" aria-label="Về ABI Tower" class="ctrl-home"><img src="../assets/svg/logo-color.svg" alt=""></button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DESIGN INSPIRATION — THE CLOUD ============ -->
+<section class="cloudsec" id="cam-hung">
+  <div class="cloudsec-pin">
+    <div class="cs-sky" aria-hidden="true">
+      <div class="cloud c4"></div><div class="cloud c5"></div><div class="cloud c6"></div><div class="cloud c7"></div>
+    </div>
+    <div class="cs-frames">
+      <figure class="cs-frame"><img src="../assets/img/cloud-1.webp" alt="Điêu khắc kiến trúc The Cloud"></figure>
+      <figure class="cs-frame"><img src="../assets/img/cloud-2.webp" alt="Không gian cảnh quan The Cloud"></figure>
+      <figure class="cs-frame"><img src="../assets/img/cloud-aerial.webp" alt="Toàn cảnh khối đế và cảnh quan"></figure>
+    </div>
+    <div class="cs-copy">
+      <p class="eyebrow"><span class="num">02</span> Cảm hứng thiết kế</p>
+      <h2 class="h2">Nghệ thuật kiến trúc “Đám mây”</h2>
+      <p class="body">Lấy cảm hứng từ những tầng mây, ABI Tower kiến tạo một không gian nhẹ nhàng, rộng mở và kết nối với thiên nhiên. “Đám mây” cũng là biểu tượng của kỷ nguyên số — nơi công nghệ, sự kết nối cùng hội tụ để định tương lai tại Starlake</p>
+    </div>
+    <div class="cs-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+  </div>
+</section>
+
+<!-- ============ GRADE A — THE SPIRAL STYLE ============ -->
+<section class="gradea" id="van-phong">
+  <div class="ga-pin">
+    <div class="ga-head">
+      <p class="eyebrow"><span class="num">03</span> Văn phòng hạng A</p>
+      <h2 class="h2">ABI Tower - Văn phòng hạng A thế hệ mới</h2>
+    </div>
+    <div class="ga-tower">
+      <svg class="ribbons ribbons-back" viewBox="0 0 737 1465" aria-hidden="true"></svg>
+      <img src="../assets/img/tower-cutout.webp" alt="ABI Tower">
+      <svg class="ribbons ribbons-front" viewBox="0 0 737 1465" aria-hidden="true"></svg>
+    </div>
+    <ol class="usp-list">
+      <li class="usp">
+        <span class="usp-ico" aria-hidden="true">
+          <svg viewBox="0 0 48 48"><rect x="12" y="12" width="24" height="24" rx="3"/><rect x="19" y="19" width="10" height="10" rx="1"/><path d="M18 6v6M24 6v6M30 6v6M18 36v6M24 36v6M30 36v6M6 18h6M6 24h6M6 30h6M36 18h6M36 24h6M36 30h6"/></svg>
+        </span>
+        <h3>Không gian làm việc thông minh</h3>
+        <p>Không gian văn phòng được phát triển theo tư duy công nghệ, từ đó khơi mở tinh thần đổi mới sáng tạo và nuôi dưỡng những ý tưởng đột phá</p>
+      </li>
+      <li class="usp">
+        <span class="usp-ico" aria-hidden="true">
+          <svg viewBox="0 0 48 48"><path d="M6 14 24 6l18 8-18 8z"/><path d="M6 24l18 8 18-8"/><path d="M6 34l18 8 18-8"/></svg>
+        </span>
+        <h3>Mặt bằng linh hoạt</h3>
+        <p>Mặt bằng không cột cùng trần thông thủy 3,5m mang đến sự linh hoạt trong bố trí không gian văn phòng.</p>
+      </li>
+      <li class="usp">
+        <span class="usp-ico" aria-hidden="true">
+          <svg viewBox="0 0 48 48"><path d="M8 22h26v8a10 10 0 0 1-10 10h-6A10 10 0 0 1 8 30z"/><path d="M34 25h3a5 5 0 0 1 0 10h-4"/><path d="M17 8c-2 3 2 5 0 8M24 8c-2 3 2 5 0 8"/></svg>
+        </span>
+        <h3>Hệ tiện ích kết nối</h3>
+        <p>Không gian cà phê ngoài trời cùng nhiều khoảng xanh mang đến điểm chạm tái tạo năng lượng, kết nối và khơi nguồn cảm hứng sáng tạo</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ STACKING PLAN ============ -->
+<section class="stack" id="so-do-tang">
+  <div class="stack-head">
+    <p class="eyebrow"><span class="num">04</span> Stacking Plan</p>
+    <h2 class="h2">Sơ đồ tầng</h2>
+  </div>
+  <div class="stack-grid">
+    <div class="iso-wrap">
+      <svg class="iso" id="iso" viewBox="0 0 560 720" role="group" aria-label="Sơ đồ tầng ABI Tower"></svg>
+      <p class="iso-hint">Chọn tầng để xem diện tích cho thuê</p>
+    </div>
+    <div class="floor-panel" id="floorPanel" aria-live="polite">
+      <div class="fp-chips" id="fpChips" role="tablist"></div>
+      <p class="fp-tag" id="fpTag"></p>
+      <h3 class="fp-title" id="fpTitle"></h3>
+      <p class="fp-nla" id="fpNla"></p>
+      <p class="fp-desc" id="fpDesc"></p>
+      <figure class="fp-media" id="fpMedia"></figure>
+    </div>
+  </div>
+  <dl class="stack-stats" id="stackStats"></dl>
+</section>
+
+<!-- ============ SHARED AMENITIES ============ -->
+<section class="amen" id="tien-ich">
+  <div class="amen-head">
+    <div>
+      <p class="eyebrow"><span class="num">05</span> Tiện ích chung</p>
+      <h2 class="h2">Kiến tạo vì con người</h2>
+    </div>
+    <p class="body">Hệ sinh thái dành cho doanh nghiệp công nghệ và đổi mới sáng tạo, góp phần xây dựng cộng đồng kết nối, hợp tác và cùng phát triển.</p>
+  </div>
+  <div class="amen-track" id="amenTrack">
+    <article class="amen-card"><img src="../assets/img/outdoor-cafe.webp" alt="Outdoor Cafe" loading="lazy"><h3>Outdoor Cafe</h3></article>
+    <article class="amen-card"><img src="../assets/img/sky-cafe.webp" alt="Sky Cafe" loading="lazy"><h3>Sky Cafe</h3></article>
+    <article class="amen-card"><img src="../assets/img/rooftop.webp" alt="Rooftop Garden" loading="lazy"><h3>Rooftop Garden</h3></article>
+    <article class="amen-card"><img src="../assets/img/meeting.webp" alt="Phòng họp đa năng" loading="lazy"><h3>Phòng họp đa năng</h3></article>
+  </div>
+  <div class="amen-nav">
+    <button type="button" data-dir="-1" aria-label="Trước">←</button>
+    <div class="amen-progress"><i id="amenBar"></i></div>
+    <button type="button" data-dir="1" aria-label="Sau">→</button>
+  </div>
+</section>
+
+<!-- ============ LEED ============ -->
+<section class="leed" id="leed">
+  <div class="leed-bg"><img src="../assets/img/garden.webp" alt="" loading="lazy"></div>
+  <div class="leed-card">
+    <img class="leed-badge" src="../assets/img/leed-gold.png" alt="Logo LEED Gold">
+    <div>
+      <p class="eyebrow"><span class="num">06</span> LEED</p>
+      <h2 class="h2">LEED Gold Target</h2>
+      <p class="body">Được phát triển theo định hướng chứng nhận LEED Gold, ngay từ giai đoạn thiết kế, ABI Tower đã tích hợp các giải pháp tối ưu năng lượng, nâng cao chất lượng môi trường trong nhà và sử dụng tài nguyên hiệu quả nhằm mang đến không gian văn phòng hạng A hiện đại, đáp ứng các tiêu chuẩn quốc tế.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LEASING ENQUIRIES ============ -->
+<section class="lease" id="lien-he">
+  <div class="lease-card">
+    <div class="lease-glow" aria-hidden="true"></div>
+    <div class="lease-copy">
+      <h2 class="lease-title">Trở thành một phần của cộng đồng đổi mới sáng tạo tại ABI Tower</h2>
+      <p class="lease-sub">Liên hệ thuê ngay:</p>
+      <div class="lease-links">
+        <a class="btn btn-light" href="tel:0829898389"><span>Hotline</span> 0829-898-389</a>
+        <a class="btn btn-ghost" href="mailto:sales@catgojsc.com"><span>Email</span> sales@catgojsc.com</a>
+      </div>
+    </div>
+    <div class="lease-qr">
+      <div class="qr" id="qr"></div>
+      <p>QR Zalo</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="ftr">
+  <div class="ftr-top">
+    <img class="ftr-logo" src="../assets/svg/logo-color.svg" alt="ABI Tower">
+    <div class="ftr-contact">
+      <p class="ftr-label">Liên hệ:</p>
+      <p>Địa chỉ: Ô H2CC2, Khu đô thị Tây Hồ Tây, đường Xuân Tảo, phường Xuân Đỉnh, Hà Nội</p>
+      <p>Hotline: <a href="tel:0829898389">0829-898-389</a></p>
+      <p>Email: <a href="mailto:sales@catgojsc.com">sales@catgojsc.com</a></p>
+    </div>
+  </div>
+  <div class="ftr-bottom">
+    <p>Copyright © ABI Tower. All Rights Reserved.</p>
+    <a href="#top" class="to-top" aria-label="Lên đầu trang">↑</a>
+  </div>
+</footer>
+
+<script src="../assets/vendor/gsap.min.js"></script>
+<script src="../assets/vendor/ScrollTrigger.min.js"></script>
+<script src="../assets/vendor/lenis.min.js"></script>
+<script src="../assets/vendor/qrcode.min.js"></script>
+<script src="../assets/js/map-svg.js"></script>
+<script src="../assets/js/shared.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

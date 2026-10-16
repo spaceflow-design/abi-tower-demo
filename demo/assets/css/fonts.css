@@ -1,0 +1,12 @@
+/* Brand fonts — Zalando Sans SemiExpanded (primary) + Raleway (secondary), per ABI Tower brand guideline */
+@font-face { font-family: "Zalando SemiExp"; src: url("../fonts/ZalandoSansSemiExpanded-Light.ttf") format("truetype"); font-weight: 300; font-display: swap; }
+@font-face { font-family: "Zalando SemiExp"; src: url("../fonts/ZalandoSansSemiExpanded-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Zalando SemiExp"; src: url("../fonts/ZalandoSansSemiExpanded-Medium.ttf") format("truetype"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Zalando SemiExp"; src: url("../fonts/ZalandoSansSemiExpanded-SemiBold.ttf") format("truetype"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Zalando SemiExp"; src: url("../fonts/ZalandoSansSemiExpanded-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
+
+@font-face { font-family: "Raleway"; src: url("../fonts/Raleway-Light.ttf") format("truetype"); font-weight: 300; font-display: swap; }
+@font-face { font-family: "Raleway"; src: url("../fonts/Raleway-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Raleway"; src: url("../fonts/Raleway-Medium.ttf") format("truetype"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Raleway"; src: url("../fonts/Raleway-SemiBold.ttf") format("truetype"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Raleway"; src: url("../fonts/Raleway-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }

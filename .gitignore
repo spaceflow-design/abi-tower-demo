@@ -1,0 +1,6 @@
+# raw client files (large, internal) — not published
+_source/
+.claude/
+.DS_Store
+# internal handoff notes stay local
+demo/GHI-CHU-DEMO.md
