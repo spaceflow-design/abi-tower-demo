@@ -409,7 +409,6 @@
   gsap.from(".leed-badge", { rotate: -120, scale: .6, opacity: 0, duration: 1.4, ease: "back.out(1.4)", scrollTrigger: { trigger: ".leed-card", start: "top 75%" } });
   gsap.from(".leed-card", { y: 60, opacity: 0, duration: 1.2, ease: "expo.out", scrollTrigger: { trigger: ".leed-card", start: "top 85%" } });
   gsap.from(".lease-card", { y: 80, scale: .96, opacity: 0, duration: 1.2, ease: "expo.out", scrollTrigger: { trigger: ".lease", start: "top 80%" } });
-  gsap.to(".lease-glow", { xPercent: -20, yPercent: -15, ease: "none", scrollTrigger: { trigger: ".lease", start: "top bottom", end: "bottom top", scrub: true } });
   ABI.mountQR(document.getElementById("qr"), 148);
 
   // generic reveal for section headings

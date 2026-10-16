@@ -397,10 +397,10 @@ ol, ul { list-style: none; }
   position: relative; overflow: hidden; isolation: isolate;
   display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: center;
   max-width: 1400px; margin: 0 auto; padding: clamp(36px, 6vw, 90px); border-radius: clamp(24px, 3vw, 40px);
-  background: linear-gradient(120deg, #21409a 0%, #232960 55%, #21409a 100%); color: #fff;
+  background: linear-gradient(120deg, #21409a 0%, #232960 100%); color: #fff;
 }
-.lease-glow { position: absolute; z-index: -1; right: -10%; bottom: -60%; width: 70%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(222,72,51,.55), transparent 62%); filter: blur(30px); }
-.lease-glow::before { content: ""; position: absolute; left: -60%; top: -40%; width: 80%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(0,174,239,.45), transparent 62%); }
+/* single warm glow pinned to the bottom-right corner (brand gradient #21409a → #232960 → #de4833) */
+.lease-glow { position: absolute; z-index: -1; right: -14%; bottom: -55%; width: max(46%, 360px); aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(222,72,51,.6), rgba(222,72,51,0) 62%); filter: blur(24px); pointer-events: none; }
 .lease-title { font-family: var(--f-display); font-weight: 500; font-size: clamp(28px, 3.6vw, 56px); line-height: 1.1; letter-spacing: -.015em; max-width: 18ch; }
 .lease-sub { margin: 26px 0 14px; font-size: 14px; letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
 .lease-links { display: flex; flex-wrap: wrap; gap: 12px; }
