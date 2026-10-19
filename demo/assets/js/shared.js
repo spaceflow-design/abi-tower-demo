@@ -127,183 +127,151 @@ ABI.mountQR = function (host, size, dark, light) {
   });
 };
 
-/* "Data cloud" — the cloud-computing reading of The Cloud: a cloud silhouette built from
-   network nodes and links, with data packets running along the links (and optional
-   uplinks to a target, e.g. the tower crown). Canvas 2D, paused while off-screen.
-   opts: box {x,y,w} as fractions of the canvas (cloud height = w * 0.62),
-         density (≈ interior nodes), dark (bool, for navy backgrounds),
-         links() → [{x,y}] canvas-px targets for uplink streams. */
-ABI.dataCloud = function (canvas, opts = {}) {
+/* Cloud-computing cloud (refs: Cloudflare line-art cloud, Antimetal/Base dot-matrix,
+   Customer.io hub beams). A clean single-stroke cloud-icon outline with a dot-matrix
+   fill that a slow light band sweeps across; small "ports" on the outline; optional
+   curved beams from the ports to targets (the tower crown). Canvas 2D, calm on purpose.
+   opts.clouds(W, H) → [{ cx, cy, w, flip, dir }] in canvas px (cloud height = w * 2/3)
+   opts.beams(W, H, clouds) → [{ cloud, port:[u,v] (icon units), to:{x,y} }] */
+ABI.iconCloud = function (canvas, opts = {}) {
   const ctx = canvas.getContext("2d");
-  const o = Object.assign({ box: { x: .1, y: .1, w: .8 }, density: 30, packets: 3, dark: false, links: null, alpha: 1, seed: 7, flip: false }, opts);
-  const lobes = [[.30, .44, .17], [.50, .30, .22], [.71, .43, .17], [.17, .53, .085], [.84, .53, .085]];
-  const rect = [.17, .44, .84, .615];
-  const inside = (x, y, m = 0) => lobes.some(([cx, cy, r]) => Math.hypot(x - cx, y - cy) < r - m) ||
-    (x > rect[0] + m && x < rect[2] - m && y > rect[1] + m && y < rect[3] - m);
-  // seeded random → same cloud on every load
-  let seed = o.seed; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-  const pts = [];
-  // contour nodes
-  lobes.forEach(([cx, cy, r]) => {
-    const n = Math.round(r * 70);
-    for (let i = 0; i < n; i++) {
-      const a = (i / n) * Math.PI * 2, x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
-      if (!inside(x, y, -.004) || inside(x, y, .012)) continue;
-      if (y > rect[3] + .002) continue;
-      pts.push({ x, y, edge: true });
-    }
-  });
-  for (let x = rect[0]; x <= rect[2]; x += .06) pts.push({ x, y: rect[3], edge: true });
-  // interior nodes with a minimum spacing
-  let guard = 0;
-  while (pts.filter(p => !p.edge).length < o.density && guard++ < 6000) {
-    const x = .1 + rnd() * .8, y = .06 + rnd() * .58;
-    if (!inside(x, y, .02)) continue;
-    if (pts.some(p => Math.hypot(p.x - x, p.y - y) < .055)) continue;
-    pts.push({ x, y, edge: false });
-  }
-  if (o.flip) pts.forEach(p => (p.x = 1 - p.x));   // mirrored silhouette for a second cloud
-  pts.forEach(p => { p.ph = rnd() * Math.PI * 2; p.sp = .3 + rnd() * .3; });
-  // links: 2 nearest neighbours (kept sparse on purpose — calm, readable)
-  const edges = [], key = new Set();
-  pts.forEach((p, i) => {
-    pts.map((q, j) => [j, Math.hypot(p.x - q.x, p.y - q.y)]).filter(([j]) => j !== i)
-      .sort((a, b) => a[1] - b[1]).slice(0, 2).forEach(([j, d]) => {
-        const k = i < j ? i + "-" + j : j + "-" + i;
-        if (!key.has(k) && d < .1) { key.add(k); edges.push([Math.min(i, j), Math.max(i, j), d]); }
-      });
-  });
-  const bottom = pts.filter(p => p.edge && p.y > rect[3] - .01);
-  const C = o.dark
-    ? { node: "rgba(255,255,255,.9)", edgeNode: "#00aeef", line: "rgba(160,200,255,", pkt: "#7fe0ff", up: "rgba(0,174,239," }
-    : { node: "#21409a", edgeNode: "#00aeef", line: "rgba(33,64,154,", pkt: "#00aeef", up: "rgba(0,174,239," };
-  let W = 0, H = 0, S = 1, OX = 0, OY = 0, dpr = 1, spread = 0, fade = 1, raf = 0, visible = true, t0 = performance.now();
-  const packets = [], ups = [];
-  function size() {
+  // Material "cloud" glyph — icon box x 0…24, y 4…20
+  const SHAPE = new Path2D("M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z");
+  const PERIM = 64;                                   // ≈ outline length in icon units (for the draw-on)
+  const PORTS = [[6, 20], [19, 20], [12, 4], [0.2, 14.6], [23.8, 15.2]];
+  const o = Object.assign({ clouds: (W, H) => [{ cx: W / 2, cy: H / 2, w: W * .86 }], beams: null, gap: 7, delay: 0 }, opts);
+  let W = 0, H = 0, dpr = 1, raf = 0, visible = true, fade = 1, spread = 0;
+  const t0 = performance.now() + o.delay * 1000, comets = [];
+  const size = () => {
     dpr = Math.min(2, window.devicePixelRatio || 1);
     W = canvas.clientWidth; H = canvas.clientHeight;
     canvas.width = W * dpr; canvas.height = H * dpr;
-    const b = typeof o.box === "function" ? o.box() : o.box;
-    S = W * b.w; OX = W * b.x; OY = H * b.y;
-  }
-  const P = p => {
-    const t = (performance.now() - t0) / 1000;
-    const jx = Math.sin(t * p.sp + p.ph) * .0012, jy = Math.cos(t * p.sp * .8 + p.ph) * .0012;
-    const cx = .5, cy = .4;
-    return [OX + (cx + (p.x + jx - cx) * (1 + spread)) * S, OY + (cy + (p.y + jy - cy) * (1 + spread * .6)) * S];
   };
-  function frame() {
+  // icon-space → canvas px for one cloud
+  const mat = c => {
+    const s = c.w / 24, off = (c.dir || 0) * spread * 90;
+    const x0 = c.cx + off - (c.flip ? -c.w / 2 : c.w / 2), y0 = c.cy - (c.w * 16 / 24) / 2 - 4 * s;
+    return { a: c.flip ? -s : s, d: s, e: x0, f: y0 };
+  };
+  const pt = (m, [u, v]) => [m.e + m.a * u, m.f + m.d * v];
+  const ease = x => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
+  function frame(now) {
     raf = 0;
     if (!visible) return;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, W, H);
-    ctx.globalAlpha = o.alpha * fade;
-    const XY = pts.map(P);
-    // links
-    ctx.lineWidth = 1;
-    edges.forEach(([i, j, d]) => {
-      ctx.strokeStyle = C.line + (pts[i].edge && pts[j].edge ? .45 : .16) + ")";
-      ctx.beginPath(); ctx.moveTo(...XY[i]); ctx.lineTo(...XY[j]); ctx.stroke();
-    });
-    // uplinks: thin curved beams (cloud → tower) that fade in and out at both ends
-    const targets = o.links ? o.links() : [], used = new Set();
-    const curves = targets.map(tg => {
-      let bi = -1, bd = 1e9;
-      bottom.forEach(p => { const i = pts.indexOf(p), d = Math.hypot(XY[i][0] - tg.x, XY[i][1] - tg.y); if (!used.has(i) && d < bd) { bd = d; bi = i; } });
-      used.add(bi);
-      const F = XY[bi], T = [tg.x, tg.y];
-      return [F, [F[0], F[1] + Math.abs(T[1] - F[1]) * .5 + 36], [T[0] + (F[0] - T[0]) * .5, T[1] - 4], T];
+    const t = Math.max(0, (now - t0) / 1000), k1 = ease(t / 1.4), k2 = ease((t - .5) / 1.2);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+    ctx.globalAlpha = fade;
+    const cs = o.clouds(W, H), ms = cs.map(mat);
+    // beams first (under the clouds)
+    const beams = o.beams ? o.beams(W, H, cs) : [];
+    const curves = beams.map(b => {
+      const F = pt(ms[b.cloud], b.port), T = [b.to.x, b.to.y];
+      return [F, [F[0] + (T[0] - F[0]) * .55, F[1]], [T[0] + (F[0] - T[0]) * .12, T[1] + Math.abs(F[1] - T[1]) * .5], T];
     });
     curves.forEach(c => {
       const g = ctx.createLinearGradient(c[0][0], c[0][1], c[3][0], c[3][1]);
-      g.addColorStop(0, C.up + "0)"); g.addColorStop(.2, C.up + ".32)"); g.addColorStop(.8, C.up + ".32)"); g.addColorStop(1, C.up + ".04)");
-      ctx.strokeStyle = g; ctx.lineWidth = 1;
+      g.addColorStop(0, "rgba(33,64,154,.5)"); g.addColorStop(.6, "rgba(33,64,154,.4)"); g.addColorStop(1, "rgba(0,174,239,.2)");
+      ctx.strokeStyle = g; ctx.lineWidth = 1; ctx.setLineDash([]);
+      ctx.save(); ctx.globalAlpha = fade * k2;
       ctx.beginPath(); ctx.moveTo(...c[0]); ctx.bezierCurveTo(...c[1], ...c[2], ...c[3]); ctx.stroke();
+      ctx.restore();
     });
-    // nodes
-    pts.forEach((p, i) => {
-      ctx.fillStyle = p.edge ? C.edgeNode : C.node;
-      ctx.beginPath(); ctx.arc(XY[i][0], XY[i][1], p.edge ? 1.9 : 1.4, 0, 7); ctx.fill();
+    cs.forEach((c, i) => {
+      const m = ms[i], h = c.w * 16 / 24;
+      // soft body
+      ctx.save(); ctx.setTransform(dpr * m.a, 0, 0, dpr * m.d, dpr * m.e, dpr * m.f);
+      const body = ctx.createLinearGradient(0, 4, 0, 20);
+      body.addColorStop(0, "rgba(255,255,255,.9)"); body.addColorStop(1, "rgba(207,225,244,.55)");
+      ctx.globalAlpha = fade * k1; ctx.fillStyle = body; ctx.fill(SHAPE);
+      // dot matrix, clipped to the cloud, with a slow diagonal light band
+      ctx.clip(SHAPE);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const left = Math.min(m.e, m.e + m.a * 24), top = m.f + 4 * m.d, g = o.gap;
+      const band = ((t * .18) % 1.6) - .3;            // 0…1 sweep, then a pause
+      for (let y = Math.floor(top / g) * g; y < top + h; y += g) {
+        for (let x = Math.floor(left / g) * g; x < left + c.w; x += g) {
+          const p = ((x - left) / c.w) * .7 + ((y - top) / h) * .3;
+          const lit = Math.max(0, 1 - Math.abs(p - band) / .12);
+          ctx.globalAlpha = fade * k2 * (.22 + .7 * lit);
+          ctx.fillStyle = lit > .35 ? "#00aeef" : "#21409a";
+          ctx.fillRect(x - .7, y - .7, 1.4, 1.4);
+        }
+      }
+      ctx.restore();
+      // outline (draws itself on load)
+      ctx.save(); ctx.setTransform(dpr * m.a, 0, 0, dpr * m.d, dpr * m.e, dpr * m.f);
+      const st = ctx.createLinearGradient(0, 0, 24, 0);
+      st.addColorStop(0, "#21409a"); st.addColorStop(1, "#00aeef");
+      ctx.strokeStyle = st; ctx.lineWidth = 1.5 / Math.abs(m.a); ctx.lineJoin = "round";
+      ctx.setLineDash([PERIM * k1, PERIM]); ctx.globalAlpha = fade;
+      ctx.stroke(SHAPE);
+      ctx.restore();
+      // ports
+      ctx.globalAlpha = fade * k2;
+      PORTS.forEach(pp => {
+        const [x, y] = pt(m, pp);
+        ctx.fillStyle = "#fff"; ctx.strokeStyle = "#21409a"; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.arc(x, y, 2.6, 0, 7); ctx.fill(); ctx.stroke();
+      });
     });
-    // a few slow packets along links
-    if (packets.length < o.packets && Math.random() < .02) {
-      const e = edges[Math.floor(Math.random() * edges.length)];
-      packets.push({ e, t: 0, v: .006 + Math.random() * .004, dir: Math.random() < .5 });
-    }
-    ctx.fillStyle = C.pkt; ctx.shadowColor = C.pkt; ctx.shadowBlur = 4;
-    for (let k = packets.length - 1; k >= 0; k--) {
-      const pk = packets[k]; pk.t += pk.v;
-      const [a, b] = pk.dir ? [pk.e[0], pk.e[1]] : [pk.e[1], pk.e[0]];
-      if (pk.t >= 1) { packets.splice(k, 1); continue; }
-      const x = XY[a][0] + (XY[b][0] - XY[a][0]) * pk.t, y = XY[a][1] + (XY[b][1] - XY[a][1]) * pk.t;
-      ctx.beginPath(); ctx.arc(x, y, 2.2, 0, 7); ctx.fill();
-    }
-    // a short comet of light travelling down each beam
-    const bz = (c, t) => { const u = 1 - t; return [0, 1].map(i => u * u * u * c[0][i] + 3 * u * u * t * c[1][i] + 3 * u * t * t * c[2][i] + t * t * t * c[3][i]); };
-    curves.forEach((c, k) => { if (!ups.some(u => u.k === k) && Math.random() < .008) ups.push({ k, t: 0 }); });
-    ctx.shadowBlur = 0; ctx.lineCap = "round";
-    for (let k = ups.length - 1; k >= 0; k--) {
-      const u = ups[k], c = curves[u.k]; u.t += .005;
-      if (!c || u.t >= 1) { ups.splice(k, 1); continue; }
-      const env = Math.sin(Math.PI * u.t), seg = 10, len = .16;
-      for (let q = 0; q < seg; q++) {
-        const a = bz(c, Math.max(0, u.t - len * q / seg)), b = bz(c, Math.max(0, u.t - len * (q + 1) / seg));
-        ctx.strokeStyle = C.up + (env * .85 * (1 - q / seg)) + ")"; ctx.lineWidth = 1.6;
+    // rare, slow comets of light along the beams
+    curves.forEach((c, i) => { if (k2 >= 1 && !comets.some(u => u.i === i) && Math.random() < .006) comets.push({ i, t: 0 }); });
+    const bz = (c, tt) => { const u = 1 - tt; return [0, 1].map(j => u * u * u * c[0][j] + 3 * u * u * tt * c[1][j] + 3 * u * tt * tt * c[2][j] + tt * tt * tt * c[3][j]); };
+    ctx.lineCap = "round";
+    for (let n = comets.length - 1; n >= 0; n--) {
+      const cm = comets[n], c = curves[cm.i]; cm.t += .0045;
+      if (!c || cm.t >= 1) { comets.splice(n, 1); continue; }
+      const env = Math.sin(Math.PI * cm.t);
+      for (let q = 0; q < 12; q++) {
+        const a = bz(c, Math.max(0, cm.t - .18 * q / 12)), b = bz(c, Math.max(0, cm.t - .18 * (q + 1) / 12));
+        ctx.globalAlpha = fade * env * .9 * (1 - q / 12); ctx.strokeStyle = "#00aeef"; ctx.lineWidth = 1.8;
         ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.stroke();
       }
-      const h = bz(c, u.t);
-      ctx.fillStyle = "rgba(255,255,255," + env + ")"; ctx.shadowColor = C.pkt; ctx.shadowBlur = 6;
-      ctx.beginPath(); ctx.arc(h[0], h[1], 1.7, 0, 7); ctx.fill(); ctx.shadowBlur = 0;
     }
-    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    ctx.globalAlpha = 1;
     if (!ABI.reduceMotion) raf = requestAnimationFrame(frame);
   }
-  size(); frame();
-  new ResizeObserver(() => { size(); if (!raf) frame(); }).observe(canvas);
-  new IntersectionObserver(([en]) => { visible = en.isIntersecting; if (visible && !raf) frame(); }).observe(canvas);
-  return {
-    set spread(v) { spread = v; }, set fade(v) { fade = v; },
-    redraw() { if (!raf) frame(); },
-    resize() { size(); if (!raf) frame(); }
-  };
+  size(); raf = requestAnimationFrame(frame);
+  new ResizeObserver(() => { size(); if (!raf) raf = requestAnimationFrame(frame); }).observe(canvas);
+  new IntersectionObserver(([en]) => { visible = en.isIntersecting; if (visible && !raf) raf = requestAnimationFrame(frame); }).observe(canvas);
+  return { set spread(v) { spread = v; }, set fade(v) { fade = v; }, resize() { size(); } };
 };
 
-// Hero network: two cloud-computing clouds flanking the tower crown, beams landing on the roof.
+// Hero: two mirrored clouds, symmetric around the tower crown, beams landing on the roof.
 ABI.heroNet = function () {
-  const cvR = document.querySelector(".hero-net:not(.hero-net-l)"), cvL = document.querySelector(".hero-net-l");
-  const img = document.querySelector(".hero-tower img"), title = document.querySelector(".hero-title");
-  if (!cvR || !img) return null;
+  const cv = document.querySelector(".hero-net"), img = document.querySelector(".hero-tower img"), title = document.querySelector(".hero-title");
+  if (!cv || !img) return null;
   const mobile = () => window.innerWidth <= 720;
-  const crown = (cv, list) => () => {
+  const crown = () => {
     const r = img.getBoundingClientRect(), c = cv.getBoundingClientRect();
-    return list.map(([fx, fy]) => ({ x: r.left - c.left + r.width * fx, y: r.top - c.top + r.height * fy }));
+    return { x: r.left - c.left, y: r.top - c.top, w: r.width, h: r.height };
   };
-  // mobile: clouds sit beside the crown, never above the title
-  const mBox = (cv, side) => () => {
-    const r = img.getBoundingClientRect(), c = cv.getBoundingClientRect(), W = c.width, H = c.height;
-    const w = side === "r" ? .36 : .28, h = w * .62 * W, crownX = r.left - c.left + r.width * .36;
-    const minY = title ? (title.getBoundingClientRect().bottom - c.top + 16) / H : .2;
-    const y = Math.max(minY, (r.top - c.top - h - 12) / H);
-    const x = side === "r" ? Math.min(1 - w - .02, (crownX + r.width * .12) / W) : Math.max(.02, (crownX - r.width * .12) / W - w);
-    return { x, y, w };
-  };
-  const nets = [ABI.dataCloud(cvR, {
-    box: () => (mobile() ? mBox(cvR, "r")() : { x: .715, y: .06, w: .26 }),
-    density: 24, links: crown(cvR, [[.47, .045], [.6, .09]])
-  })];
-  if (cvL) nets.push(ABI.dataCloud(cvL, {
-    box: () => (mobile() ? mBox(cvL, "l")() : { x: .27, y: .1, w: .17 }),
-    density: 12, packets: 2, seed: 19, flip: true, links: crown(cvL, [[.26, .045]])
-  }));
-  setTimeout(() => nets.forEach(n => n.resize()), 2200);   // re-measure once the tower's entrance animation has settled
-  return { set spread(v) { nets.forEach(n => (n.spread = v)); }, set fade(v) { nets.forEach(n => (n.fade = v)); } };
+  return ABI.iconCloud(cv, {
+    delay: .5,
+    clouds: (W, H) => {
+      const t = crown(), peak = t.x + t.w * .356;
+      const w = mobile() ? W * .26 : Math.min(260, W * .17), h = w * 16 / 24;
+      // symmetric about the crown peak, but always fully on screen
+      const d = Math.min(t.w * (mobile() ? .5 : .62) + w / 2, peak - w / 2 - 10, W - peak - w / 2 - 10);
+      let cy = mobile() ? t.y - h * .2 : t.y + t.h * .16;   // mobile: just above the crown so the clouds clear the tower
+      if (title) cy = Math.max(cy, title.getBoundingClientRect().bottom - cv.getBoundingClientRect().top + h / 2 + 18);
+      return [{ cx: peak - d, cy, w, flip: true, dir: -1 }, { cx: peak + d, cy, w, dir: 1 }];
+    },
+    beams: () => {
+      const t = crown();
+      return [
+        { cloud: 0, port: [0.2, 14.6], to: { x: t.x + t.w * .25, y: t.y + t.h * .045 } },
+        { cloud: 1, port: [0.2, 14.6], to: { x: t.x + t.w * .47, y: t.y + t.h * .045 } }
+      ];
+    }
+  });
 };
 
-// Small cloud-computing networks (replace the soft "floating clouds").
+// Small clouds used as the "floating cloud" elements in the Cloud section.
 ABI.cloudNets = function () {
   document.querySelectorAll(".cs-net").forEach((c, i) => {
-    ABI.dataCloud(c, { box: { x: .04, y: .1, w: .92 }, density: 10, packets: 1 });
-    if (!ABI.reduceMotion) gsap.to(c, { y: i % 2 ? -16 : 16, duration: 4.5 + i, ease: "sine.inOut", yoyo: true, repeat: -1 });
+    ABI.iconCloud(c, { gap: 6, clouds: (W, H) => [{ cx: W / 2, cy: H / 2, w: W * .86, flip: i % 2 === 1 }] });
+    if (!ABI.reduceMotion) gsap.to(c, { y: i % 2 ? -14 : 14, duration: 5 + i, ease: "sine.inOut", yoyo: true, repeat: -1 });
   });
 };
 
