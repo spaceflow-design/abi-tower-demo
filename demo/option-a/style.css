@@ -143,7 +143,7 @@ ol, ul { list-style: none; }
 .hero-tower::after {
   content: ""; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen;
   background: linear-gradient(180deg, transparent 0%, transparent 44%, rgba(127,224,255,.85) 50%, transparent 56%, transparent 100%);
-  background-size: 100% 220%; animation: scanUp 4.5s linear infinite;
+  background-size: 100% 220%; animation: scanUp 8s linear infinite; opacity: .7;
   -webkit-mask: url("../assets/img/tower-cutout.webp") center / 100% 100% no-repeat; mask: url("../assets/img/tower-cutout.webp") center / 100% 100% no-repeat;
 }
 @keyframes scanUp { from { background-position: 0 100%; } to { background-position: 0 0%; } }
@@ -443,7 +443,7 @@ ol, ul { list-style: none; }
   .hero-copy { top: 0; bottom: auto; width: auto; right: var(--gutter); padding-top: 130px; }
   .hero-title { font-size: clamp(30px, 8.6vw, 44px); }
   .hero-title .line { white-space: normal; }
-  .hero-tower { right: auto; left: 50%; margin-left: -27vw; width: 54vw; bottom: -14vh; }
+  .hero-tower { right: 0; left: 0; margin: 0 auto; width: min(54vw, 30vh); bottom: -14vh; }
   .hero-scroll { display: none; }
   .cs-net { width: 46vw; }
   .overview { flex-direction: column; height: auto; }

@@ -135,17 +135,17 @@ ABI.mountQR = function (host, size, dark, light) {
          links() → [{x,y}] canvas-px targets for uplink streams. */
 ABI.dataCloud = function (canvas, opts = {}) {
   const ctx = canvas.getContext("2d");
-  const o = Object.assign({ box: { x: .1, y: .1, w: .8 }, density: 90, dark: false, links: null, alpha: 1 }, opts);
+  const o = Object.assign({ box: { x: .1, y: .1, w: .8 }, density: 30, packets: 3, dark: false, links: null, alpha: 1, seed: 7, flip: false }, opts);
   const lobes = [[.30, .44, .17], [.50, .30, .22], [.71, .43, .17], [.17, .53, .085], [.84, .53, .085]];
   const rect = [.17, .44, .84, .615];
   const inside = (x, y, m = 0) => lobes.some(([cx, cy, r]) => Math.hypot(x - cx, y - cy) < r - m) ||
     (x > rect[0] + m && x < rect[2] - m && y > rect[1] + m && y < rect[3] - m);
   // seeded random → same cloud on every load
-  let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  let seed = o.seed; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
   const pts = [];
   // contour nodes
   lobes.forEach(([cx, cy, r]) => {
-    const n = Math.round(r * 120);
+    const n = Math.round(r * 70);
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2, x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
       if (!inside(x, y, -.004) || inside(x, y, .012)) continue;
@@ -153,23 +153,24 @@ ABI.dataCloud = function (canvas, opts = {}) {
       pts.push({ x, y, edge: true });
     }
   });
-  for (let x = rect[0]; x <= rect[2]; x += .035) pts.push({ x, y: rect[3], edge: true });
+  for (let x = rect[0]; x <= rect[2]; x += .06) pts.push({ x, y: rect[3], edge: true });
   // interior nodes with a minimum spacing
   let guard = 0;
   while (pts.filter(p => !p.edge).length < o.density && guard++ < 6000) {
     const x = .1 + rnd() * .8, y = .06 + rnd() * .58;
     if (!inside(x, y, .02)) continue;
-    if (pts.some(p => Math.hypot(p.x - x, p.y - y) < .036)) continue;
+    if (pts.some(p => Math.hypot(p.x - x, p.y - y) < .055)) continue;
     pts.push({ x, y, edge: false });
   }
-  pts.forEach(p => { p.ph = rnd() * Math.PI * 2; p.sp = .6 + rnd() * .8; p.pulse = 0; });
-  // links: 3 nearest neighbours
+  if (o.flip) pts.forEach(p => (p.x = 1 - p.x));   // mirrored silhouette for a second cloud
+  pts.forEach(p => { p.ph = rnd() * Math.PI * 2; p.sp = .3 + rnd() * .3; });
+  // links: 2 nearest neighbours (kept sparse on purpose — calm, readable)
   const edges = [], key = new Set();
   pts.forEach((p, i) => {
     pts.map((q, j) => [j, Math.hypot(p.x - q.x, p.y - q.y)]).filter(([j]) => j !== i)
-      .sort((a, b) => a[1] - b[1]).slice(0, 3).forEach(([j, d]) => {
+      .sort((a, b) => a[1] - b[1]).slice(0, 2).forEach(([j, d]) => {
         const k = i < j ? i + "-" + j : j + "-" + i;
-        if (!key.has(k) && d < .09) { key.add(k); edges.push([Math.min(i, j), Math.max(i, j), d]); }
+        if (!key.has(k) && d < .1) { key.add(k); edges.push([Math.min(i, j), Math.max(i, j), d]); }
       });
   });
   const bottom = pts.filter(p => p.edge && p.y > rect[3] - .01);
@@ -187,7 +188,7 @@ ABI.dataCloud = function (canvas, opts = {}) {
   }
   const P = p => {
     const t = (performance.now() - t0) / 1000;
-    const jx = Math.sin(t * p.sp + p.ph) * .004, jy = Math.cos(t * p.sp * .8 + p.ph) * .004;
+    const jx = Math.sin(t * p.sp + p.ph) * .0012, jy = Math.cos(t * p.sp * .8 + p.ph) * .0012;
     const cx = .5, cy = .4;
     return [OX + (cx + (p.x + jx - cx) * (1 + spread)) * S, OY + (cy + (p.y + jy - cy) * (1 + spread * .6)) * S];
   };
@@ -201,48 +202,58 @@ ABI.dataCloud = function (canvas, opts = {}) {
     // links
     ctx.lineWidth = 1;
     edges.forEach(([i, j, d]) => {
-      ctx.strokeStyle = C.line + (pts[i].edge && pts[j].edge ? .55 : .2 + (.09 - d) * 2) + ")";
+      ctx.strokeStyle = C.line + (pts[i].edge && pts[j].edge ? .45 : .16) + ")";
       ctx.beginPath(); ctx.moveTo(...XY[i]); ctx.lineTo(...XY[j]); ctx.stroke();
     });
-    // uplinks to targets
-    const targets = o.links ? o.links() : [];
-    targets.forEach((tg, k) => {
-      const from = XY[pts.indexOf(bottom[Math.round((k + 1) * bottom.length / (targets.length + 1)) % bottom.length])];
-      ctx.strokeStyle = C.up + ".35)"; ctx.setLineDash([3, 5]);
-      ctx.beginPath(); ctx.moveTo(...from); ctx.lineTo(tg.x, tg.y); ctx.stroke(); ctx.setLineDash([]);
-      tg._from = from;
+    // uplinks: thin curved beams (cloud → tower) that fade in and out at both ends
+    const targets = o.links ? o.links() : [], used = new Set();
+    const curves = targets.map(tg => {
+      let bi = -1, bd = 1e9;
+      bottom.forEach(p => { const i = pts.indexOf(p), d = Math.hypot(XY[i][0] - tg.x, XY[i][1] - tg.y); if (!used.has(i) && d < bd) { bd = d; bi = i; } });
+      used.add(bi);
+      const F = XY[bi], T = [tg.x, tg.y];
+      return [F, [F[0], F[1] + Math.abs(T[1] - F[1]) * .5 + 36], [T[0] + (F[0] - T[0]) * .5, T[1] - 4], T];
+    });
+    curves.forEach(c => {
+      const g = ctx.createLinearGradient(c[0][0], c[0][1], c[3][0], c[3][1]);
+      g.addColorStop(0, C.up + "0)"); g.addColorStop(.2, C.up + ".32)"); g.addColorStop(.8, C.up + ".32)"); g.addColorStop(1, C.up + ".04)");
+      ctx.strokeStyle = g; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(...c[0]); ctx.bezierCurveTo(...c[1], ...c[2], ...c[3]); ctx.stroke();
     });
     // nodes
     pts.forEach((p, i) => {
-      p.pulse = Math.max(0, p.pulse - .02);
-      const r = (p.edge ? 2.1 : 1.5) + p.pulse * 3;
       ctx.fillStyle = p.edge ? C.edgeNode : C.node;
-      ctx.beginPath(); ctx.arc(XY[i][0], XY[i][1], r, 0, 7); ctx.fill();
-      if (p.pulse > 0) { ctx.strokeStyle = C.up + p.pulse * .6 + ")"; ctx.beginPath(); ctx.arc(XY[i][0], XY[i][1], r + 6 * (1 - p.pulse) + 2, 0, 7); ctx.stroke(); }
+      ctx.beginPath(); ctx.arc(XY[i][0], XY[i][1], p.edge ? 1.9 : 1.4, 0, 7); ctx.fill();
     });
-    // packets along links
-    if (packets.length < 22 && Math.random() < .35) {
+    // a few slow packets along links
+    if (packets.length < o.packets && Math.random() < .02) {
       const e = edges[Math.floor(Math.random() * edges.length)];
-      packets.push({ e, t: 0, v: .015 + Math.random() * .02, dir: Math.random() < .5 });
+      packets.push({ e, t: 0, v: .006 + Math.random() * .004, dir: Math.random() < .5 });
     }
-    ctx.fillStyle = C.pkt; ctx.shadowColor = C.pkt; ctx.shadowBlur = 8;
+    ctx.fillStyle = C.pkt; ctx.shadowColor = C.pkt; ctx.shadowBlur = 4;
     for (let k = packets.length - 1; k >= 0; k--) {
       const pk = packets[k]; pk.t += pk.v;
       const [a, b] = pk.dir ? [pk.e[0], pk.e[1]] : [pk.e[1], pk.e[0]];
-      if (pk.t >= 1) { pts[b].pulse = 1; packets.splice(k, 1); continue; }
+      if (pk.t >= 1) { packets.splice(k, 1); continue; }
       const x = XY[a][0] + (XY[b][0] - XY[a][0]) * pk.t, y = XY[a][1] + (XY[b][1] - XY[a][1]) * pk.t;
       ctx.beginPath(); ctx.arc(x, y, 2.2, 0, 7); ctx.fill();
     }
-    // packets on uplinks
-    targets.forEach((tg, k) => {
-      if (!tg._from) return;
-      if (!ups.some(u => u.k === k && u.t < .3) && Math.random() < .06) ups.push({ k, t: 0 });
-    });
+    // a short comet of light travelling down each beam
+    const bz = (c, t) => { const u = 1 - t; return [0, 1].map(i => u * u * u * c[0][i] + 3 * u * u * t * c[1][i] + 3 * u * t * t * c[2][i] + t * t * t * c[3][i]); };
+    curves.forEach((c, k) => { if (!ups.some(u => u.k === k) && Math.random() < .008) ups.push({ k, t: 0 }); });
+    ctx.shadowBlur = 0; ctx.lineCap = "round";
     for (let k = ups.length - 1; k >= 0; k--) {
-      const u = ups[k], tg = targets[u.k]; u.t += .012;
-      if (!tg || u.t >= 1) { ups.splice(k, 1); continue; }
-      const x = tg._from[0] + (tg.x - tg._from[0]) * u.t, y = tg._from[1] + (tg.y - tg._from[1]) * u.t;
-      ctx.beginPath(); ctx.arc(x, y, 2.6, 0, 7); ctx.fill();
+      const u = ups[k], c = curves[u.k]; u.t += .005;
+      if (!c || u.t >= 1) { ups.splice(k, 1); continue; }
+      const env = Math.sin(Math.PI * u.t), seg = 10, len = .16;
+      for (let q = 0; q < seg; q++) {
+        const a = bz(c, Math.max(0, u.t - len * q / seg)), b = bz(c, Math.max(0, u.t - len * (q + 1) / seg));
+        ctx.strokeStyle = C.up + (env * .85 * (1 - q / seg)) + ")"; ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.stroke();
+      }
+      const h = bz(c, u.t);
+      ctx.fillStyle = "rgba(255,255,255," + env + ")"; ctx.shadowColor = C.pkt; ctx.shadowBlur = 6;
+      ctx.beginPath(); ctx.arc(h[0], h[1], 1.7, 0, 7); ctx.fill(); ctx.shadowBlur = 0;
     }
     ctx.shadowBlur = 0; ctx.globalAlpha = 1;
     if (!ABI.reduceMotion) raf = requestAnimationFrame(frame);
@@ -252,29 +263,46 @@ ABI.dataCloud = function (canvas, opts = {}) {
   new IntersectionObserver(([en]) => { visible = en.isIntersecting; if (visible && !raf) frame(); }).observe(canvas);
   return {
     set spread(v) { spread = v; }, set fade(v) { fade = v; },
-    redraw() { if (!raf) frame(); }
+    redraw() { if (!raf) frame(); },
+    resize() { size(); if (!raf) frame(); }
   };
 };
 
-// Hero network: cloud-computing cloud beside the tower crown, uplinks landing on the roof.
+// Hero network: two cloud-computing clouds flanking the tower crown, beams landing on the roof.
 ABI.heroNet = function () {
-  const cv = document.querySelector(".hero-net"), img = document.querySelector(".hero-tower img");
-  if (!cv || !img) return null;
+  const cvR = document.querySelector(".hero-net:not(.hero-net-l)"), cvL = document.querySelector(".hero-net-l");
+  const img = document.querySelector(".hero-tower img"), title = document.querySelector(".hero-title");
+  if (!cvR || !img) return null;
   const mobile = () => window.innerWidth <= 720;
-  return ABI.dataCloud(cv, {
-    box: () => (mobile() ? { x: .52, y: .5, w: .44 } : { x: .715, y: .06, w: .26 }),
-    density: 70,
-    links: () => {
-      const r = img.getBoundingClientRect(), c = cv.getBoundingClientRect();
-      return [[.42, .03], [.52, .06], [.62, .095]].map(([fx, fy]) => ({ x: r.left - c.left + r.width * fx, y: r.top - c.top + r.height * fy }));
-    }
-  });
+  const crown = (cv, list) => () => {
+    const r = img.getBoundingClientRect(), c = cv.getBoundingClientRect();
+    return list.map(([fx, fy]) => ({ x: r.left - c.left + r.width * fx, y: r.top - c.top + r.height * fy }));
+  };
+  // mobile: clouds sit beside the crown, never above the title
+  const mBox = (cv, side) => () => {
+    const r = img.getBoundingClientRect(), c = cv.getBoundingClientRect(), W = c.width, H = c.height;
+    const w = side === "r" ? .36 : .28, h = w * .62 * W, crownX = r.left - c.left + r.width * .36;
+    const minY = title ? (title.getBoundingClientRect().bottom - c.top + 16) / H : .2;
+    const y = Math.max(minY, (r.top - c.top - h - 12) / H);
+    const x = side === "r" ? Math.min(1 - w - .02, (crownX + r.width * .12) / W) : Math.max(.02, (crownX - r.width * .12) / W - w);
+    return { x, y, w };
+  };
+  const nets = [ABI.dataCloud(cvR, {
+    box: () => (mobile() ? mBox(cvR, "r")() : { x: .715, y: .06, w: .26 }),
+    density: 24, links: crown(cvR, [[.47, .045], [.6, .09]])
+  })];
+  if (cvL) nets.push(ABI.dataCloud(cvL, {
+    box: () => (mobile() ? mBox(cvL, "l")() : { x: .27, y: .1, w: .17 }),
+    density: 12, packets: 2, seed: 19, flip: true, links: crown(cvL, [[.26, .045]])
+  }));
+  setTimeout(() => nets.forEach(n => n.resize()), 2200);   // re-measure once the tower's entrance animation has settled
+  return { set spread(v) { nets.forEach(n => (n.spread = v)); }, set fade(v) { nets.forEach(n => (n.fade = v)); } };
 };
 
 // Small cloud-computing networks (replace the soft "floating clouds").
 ABI.cloudNets = function () {
   document.querySelectorAll(".cs-net").forEach((c, i) => {
-    ABI.dataCloud(c, { box: { x: .04, y: .1, w: .92 }, density: 34 });
+    ABI.dataCloud(c, { box: { x: .04, y: .1, w: .92 }, density: 10, packets: 1 });
     if (!ABI.reduceMotion) gsap.to(c, { y: i % 2 ? -16 : 16, duration: 4.5 + i, ease: "sine.inOut", yoyo: true, repeat: -1 });
   });
 };
