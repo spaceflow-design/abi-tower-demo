@@ -139,7 +139,7 @@ ABI.iconCloud = function (canvas, opts = {}) {
   const SHAPE = new Path2D("M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z");
   const PERIM = 64;                                   // ≈ outline length in icon units (for the draw-on)
   const PORTS = [[6, 20], [19, 20], [12, 4], [0.2, 14.6], [23.8, 15.2]];
-  const o = Object.assign({ clouds: (W, H) => [{ cx: W / 2, cy: H / 2, w: W * .86 }], beams: null, gap: 7, delay: 0 }, opts);
+  const o = Object.assign({ clouds: (W, H) => [{ cx: W / 2, cy: H / 2, w: W * .86 }], beams: null, gap: 7, delay: 0, solid: false, globalBand: false, dim: 1, ports: true }, opts);
   let W = 0, H = 0, dpr = 1, raf = 0, visible = true, fade = 1, spread = 0;
   const t0 = performance.now() + o.delay * 1000, comets = [];
   const size = () => {
@@ -149,8 +149,8 @@ ABI.iconCloud = function (canvas, opts = {}) {
   };
   // icon-space → canvas px for one cloud
   const mat = c => {
-    const s = c.w / 24, off = (c.dir || 0) * spread * 90;
-    const x0 = c.cx + off - (c.flip ? -c.w / 2 : c.w / 2), y0 = c.cy - (c.w * 16 / 24) / 2 - 4 * s;
+    const s = c.w / 24, off = (c.dir || 0) * spread * 90, offY = (c.dy || 0) * spread * 120;
+    const x0 = c.cx + off - (c.flip ? -c.w / 2 : c.w / 2), y0 = c.cy + offY - (c.w * 16 / 24) / 2 - 4 * s;
     return { a: c.flip ? -s : s, d: s, e: x0, f: y0 };
   };
   const pt = (m, [u, v]) => [m.e + m.a * u, m.f + m.d * v];
@@ -181,7 +181,8 @@ ABI.iconCloud = function (canvas, opts = {}) {
       // soft body
       ctx.save(); ctx.setTransform(dpr * m.a, 0, 0, dpr * m.d, dpr * m.e, dpr * m.f);
       const body = ctx.createLinearGradient(0, 4, 0, 20);
-      body.addColorStop(0, "rgba(255,255,255,.9)"); body.addColorStop(1, "rgba(207,225,244,.55)");
+      if (o.solid) { body.addColorStop(0, "#ffffff"); body.addColorStop(1, "#e6eff9"); }
+      else { body.addColorStop(0, "rgba(255,255,255,.9)"); body.addColorStop(1, "rgba(207,225,244,.55)"); }
       ctx.globalAlpha = fade * k1; ctx.fillStyle = body; ctx.fill(SHAPE);
       // dot matrix, clipped to the cloud, with a slow diagonal light band
       ctx.clip(SHAPE);
@@ -190,9 +191,9 @@ ABI.iconCloud = function (canvas, opts = {}) {
       const band = ((t * .18) % 1.6) - .3;            // 0…1 sweep, then a pause
       for (let y = Math.floor(top / g) * g; y < top + h; y += g) {
         for (let x = Math.floor(left / g) * g; x < left + c.w; x += g) {
-          const p = ((x - left) / c.w) * .7 + ((y - top) / h) * .3;
-          const lit = Math.max(0, 1 - Math.abs(p - band) / .12);
-          ctx.globalAlpha = fade * k2 * (.22 + .7 * lit);
+          const p = o.globalBand ? (x / W) * .8 + (y / H) * .2 : ((x - left) / c.w) * .7 + ((y - top) / h) * .3;
+          const lit = Math.max(0, 1 - Math.abs(p - band) / (o.globalBand ? .07 : .12));
+          ctx.globalAlpha = fade * k2 * (.2 + .65 * lit) * o.dim;
           ctx.fillStyle = lit > .35 ? "#00aeef" : "#21409a";
           ctx.fillRect(x - .7, y - .7, 1.4, 1.4);
         }
@@ -208,7 +209,7 @@ ABI.iconCloud = function (canvas, opts = {}) {
       ctx.restore();
       // ports
       ctx.globalAlpha = fade * k2;
-      PORTS.forEach(pp => {
+      if (o.ports) PORTS.forEach(pp => {
         const [x, y] = pt(m, pp);
         ctx.fillStyle = "#fff"; ctx.strokeStyle = "#21409a"; ctx.lineWidth = 1.2;
         ctx.beginPath(); ctx.arc(x, y, 2.6, 0, 7); ctx.fill(); ctx.stroke();
@@ -237,34 +238,28 @@ ABI.iconCloud = function (canvas, opts = {}) {
   return { set spread(v) { spread = v; }, set fade(v) { fade = v; }, resize() { size(); } };
 };
 
-// Hero: two mirrored clouds, symmetric around the tower crown, beams landing on the roof.
+// Hero (ref: Popcorn "Tomorrow's Telecom" on Mobbin): a band of overlapping clouds along the
+// bottom edge — two large ones behind the tower, three in front hiding its base.
 ABI.heroNet = function () {
-  const cv = document.querySelector(".hero-net"), img = document.querySelector(".hero-tower img"), title = document.querySelector(".hero-title");
-  if (!cv || !img) return null;
+  const back = document.querySelector(".hero-net"), front = document.querySelector(".hero-net-front");
+  if (!back) return null;
   const mobile = () => window.innerWidth <= 720;
-  const crown = () => {
-    const r = img.getBoundingClientRect(), c = cv.getBoundingClientRect();
-    return { x: r.left - c.left, y: r.top - c.top, w: r.width, h: r.height };
-  };
-  return ABI.iconCloud(cv, {
-    delay: .5,
-    clouds: (W, H) => {
-      const t = crown(), peak = t.x + t.w * .356;
-      const w = mobile() ? W * .26 : Math.min(260, W * .17), h = w * 16 / 24;
-      // symmetric about the crown peak, but always fully on screen
-      const d = Math.min(t.w * (mobile() ? .5 : .62) + w / 2, peak - w / 2 - 10, W - peak - w / 2 - 10);
-      let cy = mobile() ? t.y - h * .2 : t.y + t.h * .16;   // mobile: just above the crown so the clouds clear the tower
-      if (title) cy = Math.max(cy, title.getBoundingClientRect().bottom - cv.getBoundingClientRect().top + h / 2 + 18);
-      return [{ cx: peak - d, cy, w, flip: true, dir: -1 }, { cx: peak + d, cy, w, dir: 1 }];
-    },
-    beams: () => {
-      const t = crown();
-      return [
-        { cloud: 0, port: [0.2, 14.6], to: { x: t.x + t.w * .25, y: t.y + t.h * .045 } },
-        { cloud: 1, port: [0.2, 14.6], to: { x: t.x + t.w * .47, y: t.y + t.h * .045 } }
-      ];
-    }
-  });
+  const layout = (W, H) => mobile()
+    ? {
+        back: [{ cx: W * .1, cy: H * .9, w: W * .62, flip: true, dir: -1 }, { cx: W * .92, cy: H * .88, w: W * .6, dir: 1 }],
+        front: [{ cx: W * .5, cy: H * .975, w: W * .8, dy: 1 }]
+      }
+    : {
+        back: [{ cx: W * .15, cy: H * .86, w: W * .3, flip: true, dir: -1 }, { cx: W * .85, cy: H * .845, w: W * .32, dir: 1 }],
+        front: [
+          { cx: W * .3, cy: H * .985, w: W * .24, dir: -1, dy: .6 },
+          { cx: W * .5, cy: H * .955, w: W * .3, flip: true, dy: 1 },
+          { cx: W * .71, cy: H * .99, w: W * .26, dir: 1, dy: .6 }
+        ]
+      };
+  const nets = [ABI.iconCloud(back, { delay: .3, gap: 8, globalBand: true, dim: .8, ports: false, clouds: (W, H) => layout(W, H).back })];
+  if (front) nets.push(ABI.iconCloud(front, { delay: .55, gap: 8, globalBand: true, solid: true, ports: false, clouds: (W, H) => layout(W, H).front }));
+  return { set spread(v) { nets.forEach(n => (n.spread = v)); }, set fade(v) { nets.forEach(n => (n.fade = v)); } };
 };
 
 // Small clouds used as the "floating cloud" elements in the Cloud section.
