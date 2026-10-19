@@ -127,6 +127,158 @@ ABI.mountQR = function (host, size, dark, light) {
   });
 };
 
+/* "Data cloud" — the cloud-computing reading of The Cloud: a cloud silhouette built from
+   network nodes and links, with data packets running along the links (and optional
+   uplinks to a target, e.g. the tower crown). Canvas 2D, paused while off-screen.
+   opts: box {x,y,w} as fractions of the canvas (cloud height = w * 0.62),
+         density (≈ interior nodes), dark (bool, for navy backgrounds),
+         links() → [{x,y}] canvas-px targets for uplink streams. */
+ABI.dataCloud = function (canvas, opts = {}) {
+  const ctx = canvas.getContext("2d");
+  const o = Object.assign({ box: { x: .1, y: .1, w: .8 }, density: 90, dark: false, links: null, alpha: 1 }, opts);
+  const lobes = [[.30, .44, .17], [.50, .30, .22], [.71, .43, .17], [.17, .53, .085], [.84, .53, .085]];
+  const rect = [.17, .44, .84, .615];
+  const inside = (x, y, m = 0) => lobes.some(([cx, cy, r]) => Math.hypot(x - cx, y - cy) < r - m) ||
+    (x > rect[0] + m && x < rect[2] - m && y > rect[1] + m && y < rect[3] - m);
+  // seeded random → same cloud on every load
+  let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  const pts = [];
+  // contour nodes
+  lobes.forEach(([cx, cy, r]) => {
+    const n = Math.round(r * 120);
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2, x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
+      if (!inside(x, y, -.004) || inside(x, y, .012)) continue;
+      if (y > rect[3] + .002) continue;
+      pts.push({ x, y, edge: true });
+    }
+  });
+  for (let x = rect[0]; x <= rect[2]; x += .035) pts.push({ x, y: rect[3], edge: true });
+  // interior nodes with a minimum spacing
+  let guard = 0;
+  while (pts.filter(p => !p.edge).length < o.density && guard++ < 6000) {
+    const x = .1 + rnd() * .8, y = .06 + rnd() * .58;
+    if (!inside(x, y, .02)) continue;
+    if (pts.some(p => Math.hypot(p.x - x, p.y - y) < .036)) continue;
+    pts.push({ x, y, edge: false });
+  }
+  pts.forEach(p => { p.ph = rnd() * Math.PI * 2; p.sp = .6 + rnd() * .8; p.pulse = 0; });
+  // links: 3 nearest neighbours
+  const edges = [], key = new Set();
+  pts.forEach((p, i) => {
+    pts.map((q, j) => [j, Math.hypot(p.x - q.x, p.y - q.y)]).filter(([j]) => j !== i)
+      .sort((a, b) => a[1] - b[1]).slice(0, 3).forEach(([j, d]) => {
+        const k = i < j ? i + "-" + j : j + "-" + i;
+        if (!key.has(k) && d < .09) { key.add(k); edges.push([Math.min(i, j), Math.max(i, j), d]); }
+      });
+  });
+  const bottom = pts.filter(p => p.edge && p.y > rect[3] - .01);
+  const C = o.dark
+    ? { node: "rgba(255,255,255,.9)", edgeNode: "#00aeef", line: "rgba(160,200,255,", pkt: "#7fe0ff", up: "rgba(0,174,239," }
+    : { node: "#21409a", edgeNode: "#00aeef", line: "rgba(33,64,154,", pkt: "#00aeef", up: "rgba(0,174,239," };
+  let W = 0, H = 0, S = 1, OX = 0, OY = 0, dpr = 1, spread = 0, fade = 1, raf = 0, visible = true, t0 = performance.now();
+  const packets = [], ups = [];
+  function size() {
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    W = canvas.clientWidth; H = canvas.clientHeight;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    const b = typeof o.box === "function" ? o.box() : o.box;
+    S = W * b.w; OX = W * b.x; OY = H * b.y;
+  }
+  const P = p => {
+    const t = (performance.now() - t0) / 1000;
+    const jx = Math.sin(t * p.sp + p.ph) * .004, jy = Math.cos(t * p.sp * .8 + p.ph) * .004;
+    const cx = .5, cy = .4;
+    return [OX + (cx + (p.x + jx - cx) * (1 + spread)) * S, OY + (cy + (p.y + jy - cy) * (1 + spread * .6)) * S];
+  };
+  function frame() {
+    raf = 0;
+    if (!visible) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    ctx.globalAlpha = o.alpha * fade;
+    const XY = pts.map(P);
+    // links
+    ctx.lineWidth = 1;
+    edges.forEach(([i, j, d]) => {
+      ctx.strokeStyle = C.line + (pts[i].edge && pts[j].edge ? .55 : .2 + (.09 - d) * 2) + ")";
+      ctx.beginPath(); ctx.moveTo(...XY[i]); ctx.lineTo(...XY[j]); ctx.stroke();
+    });
+    // uplinks to targets
+    const targets = o.links ? o.links() : [];
+    targets.forEach((tg, k) => {
+      const from = XY[pts.indexOf(bottom[Math.round((k + 1) * bottom.length / (targets.length + 1)) % bottom.length])];
+      ctx.strokeStyle = C.up + ".35)"; ctx.setLineDash([3, 5]);
+      ctx.beginPath(); ctx.moveTo(...from); ctx.lineTo(tg.x, tg.y); ctx.stroke(); ctx.setLineDash([]);
+      tg._from = from;
+    });
+    // nodes
+    pts.forEach((p, i) => {
+      p.pulse = Math.max(0, p.pulse - .02);
+      const r = (p.edge ? 2.1 : 1.5) + p.pulse * 3;
+      ctx.fillStyle = p.edge ? C.edgeNode : C.node;
+      ctx.beginPath(); ctx.arc(XY[i][0], XY[i][1], r, 0, 7); ctx.fill();
+      if (p.pulse > 0) { ctx.strokeStyle = C.up + p.pulse * .6 + ")"; ctx.beginPath(); ctx.arc(XY[i][0], XY[i][1], r + 6 * (1 - p.pulse) + 2, 0, 7); ctx.stroke(); }
+    });
+    // packets along links
+    if (packets.length < 22 && Math.random() < .35) {
+      const e = edges[Math.floor(Math.random() * edges.length)];
+      packets.push({ e, t: 0, v: .015 + Math.random() * .02, dir: Math.random() < .5 });
+    }
+    ctx.fillStyle = C.pkt; ctx.shadowColor = C.pkt; ctx.shadowBlur = 8;
+    for (let k = packets.length - 1; k >= 0; k--) {
+      const pk = packets[k]; pk.t += pk.v;
+      const [a, b] = pk.dir ? [pk.e[0], pk.e[1]] : [pk.e[1], pk.e[0]];
+      if (pk.t >= 1) { pts[b].pulse = 1; packets.splice(k, 1); continue; }
+      const x = XY[a][0] + (XY[b][0] - XY[a][0]) * pk.t, y = XY[a][1] + (XY[b][1] - XY[a][1]) * pk.t;
+      ctx.beginPath(); ctx.arc(x, y, 2.2, 0, 7); ctx.fill();
+    }
+    // packets on uplinks
+    targets.forEach((tg, k) => {
+      if (!tg._from) return;
+      if (!ups.some(u => u.k === k && u.t < .3) && Math.random() < .06) ups.push({ k, t: 0 });
+    });
+    for (let k = ups.length - 1; k >= 0; k--) {
+      const u = ups[k], tg = targets[u.k]; u.t += .012;
+      if (!tg || u.t >= 1) { ups.splice(k, 1); continue; }
+      const x = tg._from[0] + (tg.x - tg._from[0]) * u.t, y = tg._from[1] + (tg.y - tg._from[1]) * u.t;
+      ctx.beginPath(); ctx.arc(x, y, 2.6, 0, 7); ctx.fill();
+    }
+    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    if (!ABI.reduceMotion) raf = requestAnimationFrame(frame);
+  }
+  size(); frame();
+  new ResizeObserver(() => { size(); if (!raf) frame(); }).observe(canvas);
+  new IntersectionObserver(([en]) => { visible = en.isIntersecting; if (visible && !raf) frame(); }).observe(canvas);
+  return {
+    set spread(v) { spread = v; }, set fade(v) { fade = v; },
+    redraw() { if (!raf) frame(); }
+  };
+};
+
+// Hero network: cloud-computing cloud beside the tower crown, uplinks landing on the roof.
+ABI.heroNet = function () {
+  const cv = document.querySelector(".hero-net"), img = document.querySelector(".hero-tower img");
+  if (!cv || !img) return null;
+  const mobile = () => window.innerWidth <= 720;
+  return ABI.dataCloud(cv, {
+    box: () => (mobile() ? { x: .52, y: .5, w: .44 } : { x: .715, y: .06, w: .26 }),
+    density: 70,
+    links: () => {
+      const r = img.getBoundingClientRect(), c = cv.getBoundingClientRect();
+      return [[.42, .03], [.52, .06], [.62, .095]].map(([fx, fy]) => ({ x: r.left - c.left + r.width * fx, y: r.top - c.top + r.height * fy }));
+    }
+  });
+};
+
+// Small cloud-computing networks (replace the soft "floating clouds").
+ABI.cloudNets = function () {
+  document.querySelectorAll(".cs-net").forEach((c, i) => {
+    ABI.dataCloud(c, { box: { x: .04, y: .1, w: .92 }, density: 34 });
+    if (!ABI.reduceMotion) gsap.to(c, { y: i % 2 ? -16 : 16, duration: 4.5 + i, ease: "sine.inOut", yoyo: true, repeat: -1 });
+  });
+};
+
 // Split text of an element into word spans (keeps Vietnamese diacritics intact).
 ABI.splitWords = function (el) {
   const words = el.textContent.trim().split(/\s+/);
