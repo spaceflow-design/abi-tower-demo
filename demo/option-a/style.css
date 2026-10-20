@@ -463,3 +463,20 @@ ol, ul { list-style: none; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* Mobile: size by the visible viewport (dvh) so the browser bars don't make the hero oversized.
+   Wrapped in @supports so older browsers keep the vh values above. */
+@supports (height: 1dvh) {
+  @media (max-width: 720px) {
+    .hero { height: 100dvh; min-height: 540px; }
+    .hero-copy { padding-top: clamp(92px, 14dvh, 120px); }
+    .hero-tower { --tw: min(58vw, 36dvh); bottom: -8dvh; }
+    .hero-glow { bottom: -34dvh; width: 80dvh; margin-left: -40dvh; }
+    .cloudsec-pin { height: 100dvh; min-height: 560px; }
+    .cs-frames { max-height: 46dvh; }
+    .ga-tower { height: 70dvh; }
+    .poi-list { max-height: 34dvh; }
+    .iso { max-height: 78dvh; }
+    .leed { min-height: 90dvh; }
+  }
+}

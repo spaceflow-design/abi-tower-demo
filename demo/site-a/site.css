@@ -329,3 +329,12 @@
   .award-badge { max-width: 300px; }
   .subnav a { padding: 7px 12px; font-size: 12.5px; }
 }
+
+/* Mobile: dvh instead of vh (visible viewport) — see option-a/style.css */
+@supports (height: 1dvh) {
+  @media (max-width: 720px) {
+    .phero { height: 74dvh; }
+    .phero-copy { bottom: clamp(48px, 9dvh, 96px); }
+    .cs-frames { max-height: 46dvh; }
+  }
+}
