@@ -21,13 +21,14 @@
   gsap.from(".hero .eyebrow", { opacity: 0, y: 14, duration: 1, delay: .5 });
   gsap.from(".hero-tower", { y: 80, opacity: 0, duration: 1.6, ease: "expo.out", delay: .3 });
 
-  // tower stays grounded; title lifts away as you scroll (LED scan keeps running on the facade)
+  // scroll = camera moves in: the tower grows (anchored on its crown) while the title lifts away
   const heroTl = gsap.timeline({
-    scrollTrigger: { trigger: ".hero", start: "top top", end: "+=100%", scrub: 1, pin: true, anticipatePin: 1 }
+    scrollTrigger: { trigger: ".hero", start: "top top", end: "+=130%", scrub: 1, pin: true, anticipatePin: 1, invalidateOnRefresh: true }
   });
   heroTl
-    .to(".hero-tower", { y: () => -window.innerHeight * .1, scale: 1.04, ease: "none" }, 0)
-    .to(".hero-copy", { y: -120, opacity: 0, ease: "none" }, 0)
+    .fromTo(".hero-tower", { scale: 1, transformOrigin: "35.6% 0%" },
+      { y: () => -window.innerHeight * .24, scale: 1.8, transformOrigin: "35.6% 0%", ease: "power1.in" }, 0)
+    .to(".hero-copy", { y: -120, opacity: 0, ease: "none", duration: .45 }, 0)
     .to(".hero-grid", { yPercent: -8, ease: "none" }, 0)
     .to(".hero-scroll", { opacity: 0, duration: .1 }, 0);
 
