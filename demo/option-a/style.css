@@ -131,13 +131,14 @@ ol, ul { list-style: none; }
   font-family: var(--f-display); font-weight: 600; color: var(--navy);
   font-size: clamp(36px, 4.6vw, 84px); line-height: 1.02; letter-spacing: -.03em;
 }
-.hero-title .line { display: block; overflow: hidden; padding: .18em .05em .08em; margin-top: -.14em; white-space: nowrap; }
+.hero-title .line { display: block; overflow: hidden; padding: .18em .05em .2em; margin: -.14em 0 -.12em; white-space: nowrap; }
 .hero-title .line > span { display: inline-block; }
-.hero-title .grad { background: linear-gradient(90deg, #21409a 0%, #00aeef 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* gradient text only paints inside the element box → extend it so descenders (g, y) aren't cut */
+.hero-title .grad { padding-bottom: .18em; margin-bottom: -.18em; background: linear-gradient(90deg, #21409a 0%, #00aeef 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .hero-tower {
   --tw: min(34vh, 24vw);
   position: absolute; z-index: 2; bottom: -8vh; width: var(--tw);
-  left: calc(50% - var(--tw) * .356);   /* centre the crown peak, not the image box */
+  left: calc(50% - var(--tw) / 2);
   will-change: transform;
 }
 .hero-tower img { width: 100%; filter: drop-shadow(0 30px 40px rgba(20, 30, 90, .18)); }
