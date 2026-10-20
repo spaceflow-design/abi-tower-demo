@@ -56,9 +56,7 @@
     gsap.from(".hero-title .line > span", { yPercent: 110, duration: 1.3, ease: "expo.out", stagger: .12, delay: .35 });
     gsap.from(".hero .eyebrow", { opacity: 0, y: 14, duration: 1, delay: .7 });
     gsap.from(".hero-tower", { y: 80, opacity: 0, duration: 1.6, ease: "expo.out", delay: .45 });
-    const net = ABI.heroNet();
-    gsap.timeline({ scrollTrigger: { trigger: ".hero", start: "top top", end: "+=100%", scrub: 1, pin: true, anticipatePin: 1,
-      onUpdate: st => { if (net) { net.spread = st.progress * .9; net.fade = 1 - st.progress * .85; } } } })
+    gsap.timeline({ scrollTrigger: { trigger: ".hero", start: "top top", end: "+=100%", scrub: 1, pin: true, anticipatePin: 1 } })
       .to(".hero-tower", { y: () => -window.innerHeight * .1, scale: 1.04, ease: "none" }, 0)
       .to(".hero-copy", { y: -120, opacity: 0, ease: "none" }, 0)
       .to(".hero-grid", { yPercent: -8, ease: "none" }, 0)
@@ -93,9 +91,7 @@
         .fromTo(frames[1].querySelector("img"), { scale: 1.25 }, { scale: 1, duration: 1.2, ease: "none" }, .4)
         .to(frames[1], { scale: .92, duration: 1 }, 1.5)
         .to(frames[2], { clipPath: "inset(0% 0% 0% 0% round 28px)", duration: 1, ease: "power2.inOut" }, 1.5)
-        .fromTo(frames[2].querySelector("img"), { scale: 1.25 }, { scale: 1, duration: 1.2, ease: "none" }, 1.5)
-        .to(".cs-sky .n1", { xPercent: 25, duration: 2.6, ease: "none" }, 0)
-        .to(".cs-sky .n2", { xPercent: -25, duration: 2.6, ease: "none" }, 0);
+        .fromTo(frames[2].querySelector("img"), { scale: 1.25 }, { scale: 1, duration: 1.2, ease: "none" }, 1.5);
     });
     mm.add(mobile, () => {
       frames.forEach((f, i) => i && gsap.to(f, {
@@ -447,7 +443,6 @@
   if ($(".leed-badge")) gsap.from(".leed-badge", { rotate: -120, scale: .6, opacity: 0, duration: 1.4, ease: "back.out(1.4)", scrollTrigger: { trigger: ".leed-badge", start: "top 85%" } });
   if ($(".lease-card")) gsap.from(".lease-card", { y: 80, scale: .96, opacity: 0, duration: 1.2, ease: "expo.out", scrollTrigger: { trigger: ".lease", start: "top 80%" } });
   if ($(".award-badge .ring")) gsap.to(".award-badge .ring", { rotate: 120, ease: "none", scrollTrigger: { trigger: ".award", start: "top bottom", end: "bottom top", scrub: true } });
-  ABI.cloudNets();
   ABI.mountQR($("#qr"), 148);
 
   // deep links from other pages (e.g. tin-tuc-lien-he.html#dia-chi)

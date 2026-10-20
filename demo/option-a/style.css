@@ -121,8 +121,6 @@ ol, ul { list-style: none; }
   -webkit-mask-image: radial-gradient(75% 70% at 50% 55%, #000 30%, transparent 80%); mask-image: radial-gradient(75% 70% at 50% 55%, #000 30%, transparent 80%);
 }
 .hero-glow { position: absolute; z-index: -1; left: 50%; bottom: -34vh; width: 80vh; margin-left: -40vh; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(0,174,239,.24), transparent 65%); }
-.hero-net { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
-.hero-net-front { z-index: 3; }
 .hero-copy {
   position: absolute; z-index: 4; left: var(--gutter); right: var(--gutter); top: 0;
   display: flex; flex-direction: column; align-items: center; text-align: center;
@@ -137,8 +135,8 @@ ol, ul { list-style: none; }
 .hero-title .line > span { display: inline-block; }
 .hero-title .grad { background: linear-gradient(90deg, #21409a 0%, #00aeef 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .hero-tower {
-  --tw: min(32vh, 24vw);
-  position: absolute; z-index: 2; bottom: -2vh; width: var(--tw);
+  --tw: min(34vh, 24vw);
+  position: absolute; z-index: 2; bottom: -8vh; width: var(--tw);
   left: calc(50% - var(--tw) * .356);   /* centre the crown peak, not the image box */
   will-change: transform;
 }
@@ -151,12 +149,10 @@ ol, ul { list-style: none; }
   -webkit-mask: url("../assets/img/tower-cutout.webp") center / 100% 100% no-repeat; mask: url("../assets/img/tower-cutout.webp") center / 100% 100% no-repeat;
 }
 @keyframes scanUp { from { background-position: 0 100%; } to { background-position: 0 0%; } }
-.hero-scroll { display: none; position: absolute; z-index: 5; left: 50%; margin-left: -13px; bottom: 26px; opacity: .8; width: 26px; height: 42px; border: 1.5px solid rgba(35,41,96,.45); border-radius: 20px; }
+.hero-scroll { position: absolute; z-index: 5; left: var(--gutter); bottom: 30px; opacity: .8; width: 26px; height: 42px; border: 1.5px solid rgba(35,41,96,.45); border-radius: 20px; }
 .hero-scroll span { position: absolute; left: 50%; top: 8px; width: 3px; height: 8px; margin-left: -1.5px; border-radius: 2px; background: var(--navy); animation: wheel 1.8s var(--ease) infinite; }
 @keyframes wheel { 0% { opacity: 0; transform: translateY(0); } 30% { opacity: 1; } 100% { opacity: 0; transform: translateY(14px); } }
 
-/* small cloud-computing networks used as the "floating cloud" elements */
-.cs-net { position: absolute; width: clamp(170px, 16vw, 260px); aspect-ratio: 1 / .7; pointer-events: none; z-index: 3; }
 
 /* ==========================================================================
    INTRO + OVERVIEW
@@ -239,9 +235,6 @@ ol, ul { list-style: none; }
   position: relative; height: 100vh; min-height: 680px; overflow: hidden;
   display: grid; grid-template-rows: 1fr auto; justify-items: center; padding: 110px var(--gutter) 48px;
 }
-.cs-sky { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
-.cs-sky .n1 { left: -1%; top: 9%; }
-.cs-sky .n2 { right: -1%; top: 50%; }
 .cs-frames { position: relative; width: min(1100px, 100%); height: 100%; max-height: 54vh; z-index: 2; }
 .cs-frame {
   position: absolute; inset: 0; border-radius: var(--r-lg); overflow: hidden;
@@ -447,9 +440,8 @@ ol, ul { list-style: none; }
   .hero-copy { padding-top: 120px; }
   .hero-title { font-size: clamp(30px, 8.6vw, 44px); }
   .hero-title .line { white-space: normal; }
-  .hero-tower { --tw: min(62vw, 40vh); bottom: -2vh; }
+  .hero-tower { --tw: min(58vw, 36vh); bottom: -8vh; }
   .hero-scroll { display: none; }
-  .cs-net { width: 46vw; }
   .overview { flex-direction: column; height: auto; }
   .ov-card, .ov-card.is-open { flex: none; height: 240px; }
   .cs-copy { grid-template-columns: 1fr; }
