@@ -391,14 +391,16 @@
     leaders.setAttribute("viewBox", `0 0 ${sb.width} ${sb.height}`);
     const m = front.getScreenCTM();
     if (!m) return;
+    // measure against the resting layout: the tower and callouts may still carry their entrance offset (y)
+    const towerY = gsap.getProperty(".ga-tower", "y") || 0;
     calls.forEach((c, i) => {
       const a = leadSide[i] === "R" ? ringParts[i].anchorR : ringParts[i].anchorL;
       const pt = front.createSVGPoint(); pt.x = a[0]; pt.y = a[1] + GAP / 2;
       const sp = pt.matrixTransform(m);
-      const ax = sp.x - sb.left, ay = sp.y - sb.top;
+      const ax = sp.x - sb.left, ay = sp.y - sb.top - towerY;
       const cb = c.getBoundingClientRect();
       const cx = leadSide[i] === "R" ? cb.left - sb.left : cb.right - sb.left;
-      const cy = cb.top - sb.top + 34;
+      const cy = cb.top - sb.top - (gsap.getProperty(c, "y") || 0) + 34;
       const mx = leadSide[i] === "R" ? cx - 30 : cx + 30;
       leadPaths[i].setAttribute("d", `M${ax},${ay} L${mx},${cy} L${cx},${cy}`);
       leadDots[i].setAttribute("cx", ax); leadDots[i].setAttribute("cy", ay);
