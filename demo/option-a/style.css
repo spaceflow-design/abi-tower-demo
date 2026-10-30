@@ -254,6 +254,9 @@ ol, ul { list-style: none; }
 .ov-card::after { content: ""; position: absolute; inset: 35% 0 0; background: linear-gradient(transparent, rgba(11,14,42,.78)); opacity: 0; transition: opacity .6s; pointer-events: none; }
 .ov-card.is-open::after { opacity: 1; }
 .ov-card figcaption { position: absolute; z-index: 2; left: 18px; right: 18px; bottom: 18px; display: grid; gap: 12px; justify-items: start; }
+/* tag + highlights only on the open (large) photo */
+.ov-card .pill { opacity: 0; transform: translateY(10px); transition: opacity .4s, transform .5s var(--ease); }
+.ov-card.is-open .pill { opacity: 1; transform: none; transition-delay: .2s; }
 .ov-info { color: #fff; max-width: 420px; opacity: 0; transform: translateY(14px); transition: opacity .5s, transform .6s var(--ease); pointer-events: none; }
 .ov-card.is-open .ov-info { opacity: 1; transform: none; transition-delay: .25s; }
 .ov-k { font-family: var(--f-display); font-weight: 500; font-size: clamp(17px, 1.5vw, 22px); margin-bottom: 8px; }
@@ -608,10 +611,12 @@ ol, ul { list-style: none; }
 .ftr-bottom { display: flex; justify-content: space-between; align-items: center; max-width: 1440px; margin: 44px auto 0; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.12); font-size: 13px; }
 .to-top { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; border: 1px solid rgba(255,255,255,.22); color: #fff; }
 
-/* quick contact dock (right edge) */
-.dock { position: fixed; z-index: 45; right: 10px; top: 50%; display: grid; gap: 8px; transform: translate(80px, -50%); transition: transform .6s var(--ease); }
-.dock.is-on { transform: translate(0, -50%); }
-.dock a { width: 38px; height: 38px; background: #fff; color: var(--navy); box-shadow: 0 8px 22px -10px rgba(11,14,42,.5); }
+/* quick contact dock (bottom-right corner) */
+.dock { position: fixed; z-index: 45; right: 20px; bottom: 24px; display: grid; gap: 10px; transform: translateX(90px); transition: transform .6s var(--ease); }
+.dock.is-on { transform: none; }
+.dock a { width: 48px; height: 48px; background: #fff; color: var(--navy); box-shadow: 0 10px 26px -10px rgba(11,14,42,.55); }
+.dock svg { width: 21px; height: 21px; }
+.dock .zalo { font-size: 12px; }
 .dock a:hover { background: var(--navy); color: #fff; }
 
 .toast {
@@ -663,8 +668,6 @@ ol, ul { list-style: none; }
   .news-grid { grid-template-columns: repeat(2, 1fr); }
   .lease-card { grid-template-columns: 1fr; }
   .lease-info { order: -1; }
-  .dock { top: auto; bottom: 16px; transform: translate(70px, 0); }
-  .dock.is-on { transform: none; }
 }
 @media (max-width: 1100px) and (orientation: portrait) and (min-width: 721px) {
   .cloudsec { align-content: center; grid-template-rows: auto auto; }
@@ -736,9 +739,8 @@ ol, ul { list-style: none; }
   .lead { grid-template-columns: 1fr; }
   .lease-qr .qr { width: 100px; height: 100px; }
   .ftr-top { grid-template-columns: 1fr; }
-  .dock { right: 10px; top: auto; bottom: 16px; transform: translate(70px, 0); }
-  .dock.is-on { transform: none; }
-  .dock a { width: 36px; height: 36px; }
+  .dock { right: 12px; bottom: 16px; gap: 8px; }
+  .dock a { width: 42px; height: 42px; }
   .dock li:nth-child(2), .dock li:nth-child(4) { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {

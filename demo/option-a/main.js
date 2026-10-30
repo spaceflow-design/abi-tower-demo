@@ -111,9 +111,10 @@
   ScrollTrigger.create({ trigger: ".intro", start: "top 60%", end: "max", onToggle: s => dock.classList.toggle("is-on", s.isActive) });
 
   /* ------------------------------------------------------------------
-     HERO — looping 2-frame motion (ref: IFC/OSI hero video, title-card + tech orb refs)
+     HERO — 2-frame motion, plays once on load (ref: IFC/OSI hero video, title-card + tech orb refs)
      Frame 1: navy + brand pattern, crosshair, orb; the two text lines resolve in.
      Frame 2: the tower rises with the LED scan.
+     Scrolling back up into the hero rewinds to frame 1; scrolling down plays frame 2 again.
   ------------------------------------------------------------------ */
   const eyebrow = document.querySelector(".hero-eyebrow");
   const chars = [];
@@ -137,45 +138,55 @@
   const frameBtns = [...document.querySelectorAll(".hero-frames button")];
   const bars = frameBtns.map(b => b.querySelector("s"));
   const setFrame = i => frameBtns.forEach((b, k) => { b.classList.toggle("is-on", k === i); b.setAttribute("aria-selected", k === i); });
-  const F1 = 5.2, F2 = 5.6;
+  const F1 = 2.3;          // frame 2 starts here
+  const HOLD = 1.5;        // frame 1 fully shown (rewind target)
+  const END = 3.4;
 
   // crosshair draws once
-  gsap.fromTo(".cx-h", { scaleX: 0 }, { scaleX: 1, duration: 1.4, ease: "expo.inOut", delay: .1 });
-  gsap.fromTo(".cx-v", { scaleY: 0 }, { scaleY: 1, duration: 1.4, ease: "expo.inOut", delay: .2 });
+  gsap.fromTo(".cx-h", { scaleX: 0 }, { scaleX: 1, duration: 1, ease: "expo.inOut" });
+  gsap.fromTo(".cx-v", { scaleY: 0 }, { scaleY: 1, duration: 1, ease: "expo.inOut", delay: .08 });
 
-  const heroTl = gsap.timeline({ repeat: -1, delay: .2 });
+  const heroTl = gsap.timeline({ paused: true, onUpdate: () => setFrame(heroTl.time() >= F1 - .15 ? 1 : 0) });
   heroTl
-    .addLabel("f1", 0)
     .set(bars, { scaleX: 0 }, 0)
     .set(".hero-f2", { autoAlpha: 0 }, 0)
-    .set(eyebrow, { opacity: 1 }, 0)
-    .call(() => setFrame(0), null, 0)
-    .fromTo(".hero-orb", { scale: .55, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.6, ease: "expo.out" }, .1)
-    .fromTo(".cx-c", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: .6, ease: "back.out(2)" }, .3)
-    .call(() => scramble(eyebrow, { duration: 900, glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#" }), null, .35)
-    .fromTo(chars, { opacity: 0, filter: "blur(14px)", yPercent: 45 },
-      { opacity: 1, filter: "blur(0px)", yPercent: 0, duration: 1, ease: "power3.out", stagger: .028 }, .6)
+    .fromTo(".hero-orb", { scale: .55, opacity: 0 }, { scale: 1, opacity: 1, duration: 1, ease: "expo.out" }, 0)
+    .fromTo(".cx-c", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: .4, ease: "back.out(2)" }, .15)
+    .call(() => scramble(eyebrow, { duration: 600, glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#" }), null, .1)
+    .fromTo(chars, { opacity: 0, filter: "blur(12px)", yPercent: 45 },
+      { opacity: 1, filter: "blur(0px)", yPercent: 0, duration: .6, ease: "power3.out", stagger: .014 }, .2)
     .to(bars[0], { scaleX: 1, duration: F1, ease: "none" }, 0)
     // frame 1 → 2
-    .to(chars, { opacity: 0, filter: "blur(10px)", yPercent: -35, duration: .7, ease: "power2.in", stagger: .01 }, F1 - .9)
-    .to(eyebrow, { opacity: 0, duration: .5 }, F1 - .9)
-    .to(".hero-orb", { scale: 1.9, opacity: 0, duration: 1.1, ease: "power2.in" }, F1 - .9)
-    .to(".cx-c", { scale: 0, opacity: 0, duration: .4 }, F1 - .6)
-    .addLabel("f2", F1)
-    .set(".hero-f2", { autoAlpha: 1 }, F1 - .3)
-    .call(() => setFrame(1), null, F1)
+    .to(chars, { opacity: 0, filter: "blur(10px)", yPercent: -35, duration: .45, ease: "power2.in", stagger: .005 }, F1 - .55)
+    .to(eyebrow, { opacity: 0, duration: .35 }, F1 - .55)
+    .to(".hero-orb", { scale: 1.9, opacity: 0, duration: .7, ease: "power2.in" }, F1 - .55)
+    .to(".cx-c", { scale: 0, opacity: 0, duration: .3 }, F1 - .4)
+    .set(".hero-f2", { autoAlpha: 1 }, F1 - .2)
     .fromTo(".hero-tower", { yPercent: 26, opacity: 0, filter: "brightness(2.2) blur(8px)" },
-      { yPercent: 0, opacity: 1, filter: "brightness(1) blur(0px)", duration: 1.8, ease: "expo.out" }, F1 - .3)
-    .fromTo(".hero-halo", { opacity: 0, scale: .5 }, { opacity: 1, scale: 1, duration: 1.6, ease: "expo.out" }, F1 - .3)
-    .to(bars[1], { scaleX: 1, duration: F2, ease: "none" }, F1)
-    // frame 2 → loop
-    .to(".hero-tower", { opacity: 0, yPercent: 6, filter: "brightness(1.6) blur(6px)", duration: .8, ease: "power2.in" }, F1 + F2 - .8)
-    .to(".hero-halo", { opacity: 0, duration: .8 }, F1 + F2 - .8);
+      { yPercent: 0, opacity: 1, filter: "brightness(1) blur(0px)", duration: 1.1, ease: "expo.out" }, F1 - .2)
+    .fromTo(".hero-halo", { opacity: 0, scale: .5 }, { opacity: 1, scale: 1, duration: 1, ease: "expo.out" }, F1 - .2)
+    .to(bars[1], { scaleX: 1, duration: END - F1, ease: "none" }, F1);
 
-  frameBtns.forEach((b, i) => b.addEventListener("click", () => heroTl.play(i ? "f2" : "f1")));
-  // only animate while the hero is on screen
-  ScrollTrigger.create({ trigger: ".hero", start: "top bottom", end: "bottom top", onToggle: s => (s.isActive ? heroTl.resume() : heroTl.pause()) });
-  if (ABI.reduceMotion) { heroTl.pause(F1 - 1); setFrame(0); }
+  // forward = towards the tower, back = rewind to the title frame
+  let heroDir = 1, rewind = null;
+  function heroTo(dir) {
+    if (dir === heroDir) return;
+    heroDir = dir;
+    rewind && rewind.kill();
+    if (dir > 0) heroTl.play();
+    else {
+      const t = heroTl.time();
+      heroTl.pause();
+      rewind = heroTl.tweenTo(HOLD, { duration: t > HOLD ? Math.max(.4, (t - HOLD) * .55) : HOLD - t, ease: t > HOLD ? "power1.inOut" : "none" });
+    }
+  }
+  gsap.delayedCall(.15, () => heroTl.play());
+  frameBtns.forEach((b, i) => b.addEventListener("click", () => heroTo(i ? 1 : -1)));
+  ScrollTrigger.create({
+    trigger: ".hero", start: "top top", end: "bottom top",
+    onUpdate: s => s.direction && heroTo(s.direction)
+  });
+  if (ABI.reduceMotion) heroTl.progress(1);
 
   /* ------------------------------------------------------------------
      INTRO — word-by-word reading scrub; overview cards open on hover (+ highlights)
