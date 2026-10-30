@@ -570,13 +570,21 @@ ol, ul { list-style: none; }
 .f-checks input:checked + i::after { content: ""; width: 8px; height: 5px; border-left: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(-45deg) translate(1px, -1px); }
 .f-checks input:focus-visible + i { outline: 2px solid var(--cyan); outline-offset: 2px; }
 .f-checks.is-bad i { border-color: var(--red); }
+/* "Khác" → optional free-text field slides open (the negative margin cancels the grid gap while closed) */
+.f-other { display: grid; grid-template-rows: 0fr; margin-top: -14px; opacity: 0; transition: grid-template-rows .4s var(--ease), margin-top .4s var(--ease), opacity .3s; }
+.f-other > .f-field { overflow: hidden; min-height: 0; }
+.f-other.is-on { grid-template-rows: 1fr; margin-top: 0; opacity: 1; }
+.f-other small { font-weight: 500; color: var(--muted); }
 .f-submit { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; margin-top: 4px; }
 .f-msg { font-size: 13px; color: var(--muted); }
 .f-msg.is-ok { color: #11865b; }
 .f-msg.is-err { color: var(--red); }
 .lease-title { font-family: var(--f-display); font-weight: 500; font-size: clamp(24px, 2.4vw, 38px); line-height: 1.15; letter-spacing: -.01em; max-width: 20ch; }
 .lease-sub { margin: 20px 0 12px; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
-.lease-links { display: flex; flex-wrap: wrap; gap: 10px; }
+/* stacked, equal width (= the wider button); labels share a width so the values line up */
+.lease-links { display: inline-grid; grid-template-columns: minmax(0, 1fr); gap: 10px; max-width: 100%; }
+.lease-links .btn { justify-content: flex-start; padding: 0 24px; }
+.lease-links .btn span { min-width: 5.4em; }
 .lease-qr { display: flex; align-items: center; gap: 16px; margin-top: 26px; }
 .qr { width: 120px; height: 120px; padding: 10px; border-radius: 18px; background: #fff; }
 .qr img, .qr canvas { width: 100% !important; height: 100% !important; }

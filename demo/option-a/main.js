@@ -602,6 +602,15 @@
 
   // lead form (demo: validates, nothing is sent)
   const form = $("leadForm"), msg = $("leadMsg");
+  // "Khác" opens an optional text field to describe the need
+  const otherBox = $("fOther"), otherInput = otherBox.querySelector("input");
+  const otherCheck = form.querySelector('[name="interest"][value="other"]');
+  const syncOther = focus => {
+    otherBox.classList.toggle("is-on", otherCheck.checked);
+    otherInput.disabled = !otherCheck.checked;
+    if (otherCheck.checked && focus) setTimeout(() => otherInput.focus({ preventScroll: true }), 250);
+  };
+  otherCheck.addEventListener("change", () => syncOther(true));
   form.addEventListener("submit", e => {
     e.preventDefault();
     const f = form.elements;
@@ -623,6 +632,7 @@
     msg.classList.add("is-ok");
     msg.textContent = "Cảm ơn bạn! (Bản demo — thông tin chưa được gửi đi)";
     form.reset();
+    syncOther(false);
   });
 
   // generic reveal for section headings
