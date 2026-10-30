@@ -528,16 +528,12 @@ ol, ul { list-style: none; }
 .news { padding: clamp(80px, 9vw, 120px) var(--gutter) clamp(50px, 6vw, 80px); background: var(--paper); }
 .news-head { max-width: 1440px; margin: 0 auto 30px; }
 .news-grid { max-width: 1440px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
-.news-card { position: relative; display: grid; grid-template-rows: auto 1fr; gap: 14px; padding-bottom: 6px; }
+.news-card { display: grid; grid-template-rows: auto 1fr; gap: 14px; align-content: start; padding-bottom: 6px; }
 .news-card figure { aspect-ratio: 4 / 3; border-radius: 20px; overflow: hidden; background: var(--ice); }
 .news-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.1s var(--ease); }
 .news-card:hover img { transform: scale(1.06); }
-.news-card h3 { padding-right: 44px; font-family: var(--f-display); font-weight: 500; font-size: clamp(15px, 1.15vw, 18px); line-height: 1.35; color: var(--navy); }
-.nc-go {
-  position: absolute; right: 0; bottom: 4px; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
-  border: 1px solid var(--line); color: var(--navy); transition: background .3s, color .3s, border-color .3s;
-}
-.news-card:hover .nc-go { background: var(--navy); border-color: var(--navy); color: #fff; }
+.news-card h3 { font-family: var(--f-display); font-weight: 500; font-size: clamp(15px, 1.15vw, 18px); line-height: 1.35; color: var(--navy); transition: color .3s; }
+.news-card:hover h3 { color: var(--blue); }
 
 /* ==========================================================================
    LEASING — form left, contact right
@@ -735,8 +731,6 @@ ol, ul { list-style: none; }
   .news-grid { grid-template-columns: 1fr; }
   .news-card { grid-template-columns: 120px 1fr; grid-template-rows: auto; align-items: center; }
   .news-card figure { aspect-ratio: 1; }
-  .nc-go { display: none; }
-  .news-card h3 { padding-right: 0; }
   .lead { grid-template-columns: 1fr; }
   .lease-qr .qr { width: 100px; height: 100px; }
   .ftr-top { grid-template-columns: 1fr; }
