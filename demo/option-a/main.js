@@ -1,94 +1,262 @@
-/* ABI Tower — Homepage demo · OPTION A "Cloud / Aurora" */
+/* ABI Tower — Homepage demo · OPTION A (revision after client feedback 2026-10-30) */
 (() => {
   ABI.initSmooth();
   const mm = gsap.matchMedia();
-  const isMobile = () => window.innerWidth <= 720;
+  const NS = "http://www.w3.org/2000/svg";
+  const $ = id => document.getElementById(id);
+  const el = (tag, attrs, parent) => {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    parent && parent.appendChild(n);
+    return n;
+  };
+  const pts = a => a.map(p => p.join(",")).join(" ");
 
   /* ------------------------------------------------------------------
-     HEADER — white logo over hero, glass pill after
+     SMALL UI HELPERS — toast, demo links, text scramble
   ------------------------------------------------------------------ */
-  const hdr = document.getElementById("hdr");
+  const toastEl = $("toast");
+  let toastT;
+  const toast = msg => {
+    toastEl.textContent = msg;
+    toastEl.classList.add("is-on");
+    clearTimeout(toastT);
+    toastT = setTimeout(() => toastEl.classList.remove("is-on"), 2600);
+  };
+  document.querySelectorAll("[data-demo]").forEach(a => a.addEventListener("click", e => { e.preventDefault(); toast(a.dataset.demo); }));
+
+  // "decode" effect: letters resolve left → right out of random glyphs
+  function scramble(node, { duration = 520, glyphs = "abcdefghijklmnopqrstuvwxyz0123456789" } = {}) {
+    const final = node.dataset.text || (node.dataset.text = node.textContent);
+    cancelAnimationFrame(node._raf);
+    const t0 = performance.now(), n = final.length;
+    const step = now => {
+      const p = Math.min(1, (now - t0) / duration);
+      const shown = Math.floor(p * n);
+      let html = "";
+      for (let i = 0; i < n; i++) {
+        const c = final[i];
+        html += i < shown || c === " " || c === "·" ? c : `<span class="sc">${glyphs[(Math.random() * glyphs.length) | 0]}</span>`;
+      }
+      node.innerHTML = html;
+      if (p < 1) node._raf = requestAnimationFrame(step);
+      else node.textContent = final;
+    };
+    node._raf = requestAnimationFrame(step);
+  }
+
+  /* ------------------------------------------------------------------
+     BRAND LINE PATTERN — modules from the logo (bar + diagonal stroke)
+  ------------------------------------------------------------------ */
+  function buildPattern(svg, w, h, shift = 0) {
+    const W = 135, H = 142, SHIFT = 27;
+    if (!w) { const b = svg.getBoundingClientRect(); w = b.width; h = b.height; }
+    const cols = Math.ceil(w / W) + 3, rows = Math.ceil(h / H) + 2;
+    if (!svg.getAttribute("viewBox")) svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+    const fills = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const ox = c * W - r * SHIFT + (rows * SHIFT) % W - W + shift, oy = r * H - 40;
+        el("polygon", { class: "pt-l", points: pts([[ox + 86, oy - 7], [ox + 140, oy - 101], [ox + 166, oy - 54], [ox + 113, oy + 39]]) }, svg);
+        const bar = [[ox, oy], [ox + 80, oy], [ox + 103, oy + 39], [ox + 23, oy + 39]];
+        el("polygon", { class: "pt-l", points: pts(bar) }, svg);
+        if ((r * 7 + c * 3) % 5 === 0 || (r + c) % 7 === 0) fills.push(el("polygon", { class: "pt-f", points: pts(bar) }, svg));
+      }
+    }
+    return fills;
+  }
+  document.querySelectorAll(".pattern").forEach(svg => {
+    const fills = buildPattern(svg);
+    if (svg.classList.contains("hero-pattern")) {
+      gsap.to(fills, { opacity: () => gsap.utils.random([.1, .2, .32]), duration: 1.6, stagger: { each: .03, from: "random", repeat: -1, yoyo: true, repeatDelay: 1.2 }, ease: "sine.inOut" });
+    } else {
+      gsap.to(fills, {
+        opacity: () => gsap.utils.random([.3, .55, .85]), stagger: { each: .02, from: "random" }, ease: "none",
+        scrollTrigger: { trigger: svg.parentElement, start: "top 85%", end: "bottom 40%", scrub: true }
+      });
+    }
+  });
+  // intro side ornaments: a small patch of the same pattern
+  document.querySelectorAll(".intro-deco").forEach((svg, i) => {
+    const fills = buildPattern(svg, 220, 300, i * 40);
+    fills.forEach((f, k) => f.setAttribute("class", k % 2 ? "pt-s" : "pt-f"));
+    gsap.from(svg.querySelectorAll("polygon"), { opacity: 0, duration: .6, stagger: { each: .01, from: "random" }, scrollTrigger: { trigger: ".intro", start: "top 75%" } });
+  });
+
+  /* ------------------------------------------------------------------
+     HEADER — white over the navy hero, glass pill after; nav scramble on hover
+  ------------------------------------------------------------------ */
+  const hdr = $("hdr");
   document.querySelector(".hdr-burger").addEventListener("click", e => {
     const open = hdr.classList.toggle("nav-open");
     e.currentTarget.setAttribute("aria-expanded", open);
   });
-  hdr.querySelectorAll(".hdr-nav a").forEach(a => a.addEventListener("click", () => hdr.classList.remove("nav-open")));
+  const navLinks = [...hdr.querySelectorAll(".hdr-nav a")];
+  navLinks.forEach(a => {
+    a.addEventListener("click", () => hdr.classList.remove("nav-open"));
+    a.addEventListener("mouseenter", () => {
+      if (ABI.reduceMotion || window.innerWidth <= 1180) return;
+      a.style.minWidth = a.offsetWidth + "px";
+      scramble(a, { duration: 420 });
+      setTimeout(() => (a.style.minWidth = ""), 480);
+    });
+  });
+  hdr.querySelectorAll(".hdr-lang button").forEach(b => b.addEventListener("click", () => {
+    if (b.dataset.lang === "en") toast("Phiên bản tiếng Anh (EN) sẽ được bổ sung ở giai đoạn build");
+  }));
+  // end: "max" keeps the state right after a reload / jump in the middle of the page
+  ScrollTrigger.create({ trigger: ".intro", start: "top 80px", end: "max", onToggle: s => hdr.classList.toggle("is-solid", s.isActive) });
+  // quick-contact dock appears once the hero has scrolled away
+  const dock = document.querySelector(".dock");
+  ScrollTrigger.create({ trigger: ".intro", start: "top 60%", end: "max", onToggle: s => dock.classList.toggle("is-on", s.isActive) });
 
   /* ------------------------------------------------------------------
-     HERO — title rises, tower lifts out of the aurora on scroll
+     HERO — looping 2-frame motion (ref: IFC/OSI hero video, title-card + tech orb refs)
+     Frame 1: navy + brand pattern, crosshair, orb; the two text lines resolve in.
+     Frame 2: the tower rises with the LED scan.
   ------------------------------------------------------------------ */
-  gsap.from(".hero-title .line > span", { yPercent: 110, duration: 1.3, ease: "expo.out", stagger: .12, delay: .15 });
-  gsap.from(".hero .eyebrow", { opacity: 0, y: 14, duration: 1, delay: .5 });
-  gsap.from(".hero-tower", { y: 80, opacity: 0, duration: 1.6, ease: "expo.out", delay: .3 });
-
-  // scroll = camera moves in: the tower grows (anchored on its crown) while the title lifts away
-  const heroTl = gsap.timeline({
-    scrollTrigger: { trigger: ".hero", start: "top top", end: "+=130%", scrub: 1, pin: true, anticipatePin: 1, invalidateOnRefresh: true }
+  const eyebrow = document.querySelector(".hero-eyebrow");
+  const chars = [];
+  document.querySelectorAll(".hero-title [data-chars]").forEach(line => {
+    const words = line.textContent.trim().normalize("NFC").split(/\s+/);
+    line.innerHTML = words.map(w => `<span class="wd">${Array.from(w).map(c => `<span class="ch">${c}</span>`).join("")}</span>`).join(" ");
+    chars.push(...line.querySelectorAll(".ch"));
   });
+  // one gradient sweep across the 2nd line, painted per character
+  function paintGrad() {
+    const cs = [...document.querySelectorAll(".hero-title .grad .ch")];
+    if (!cs.length) return;
+    const rs = cs.map(c => c.getBoundingClientRect());
+    const x0 = Math.min(...rs.map(r => r.left)), x1 = Math.max(...rs.map(r => r.right));
+    cs.forEach((c, i) => { c.style.backgroundSize = `${x1 - x0}px 100%`; c.style.backgroundPosition = `${x0 - rs[i].left}px 0`; });
+  }
+  paintGrad();
+  document.fonts && document.fonts.ready.then(paintGrad);
+  window.addEventListener("resize", paintGrad);
+
+  const frameBtns = [...document.querySelectorAll(".hero-frames button")];
+  const bars = frameBtns.map(b => b.querySelector("s"));
+  const setFrame = i => frameBtns.forEach((b, k) => { b.classList.toggle("is-on", k === i); b.setAttribute("aria-selected", k === i); });
+  const F1 = 5.2, F2 = 5.6;
+
+  // crosshair draws once
+  gsap.fromTo(".cx-h", { scaleX: 0 }, { scaleX: 1, duration: 1.4, ease: "expo.inOut", delay: .1 });
+  gsap.fromTo(".cx-v", { scaleY: 0 }, { scaleY: 1, duration: 1.4, ease: "expo.inOut", delay: .2 });
+
+  const heroTl = gsap.timeline({ repeat: -1, delay: .2 });
   heroTl
-    .fromTo(".hero-tower", { scale: 1, transformOrigin: "50% 0%" },
-      { y: () => -window.innerHeight * (window.innerWidth <= 720 ? .12 : .24), scale: () => (window.innerWidth <= 720 ? 1.4 : 1.8), transformOrigin: "50% 0%", ease: "power1.in" }, 0)
-    .to(".hero-copy", { y: -120, opacity: 0, ease: "none", duration: .45 }, 0)
-    .to(".hero-grid", { yPercent: -8, ease: "none" }, 0)
-    .to(".hero-scroll", { opacity: 0, duration: .1 }, 0);
+    .addLabel("f1", 0)
+    .set(bars, { scaleX: 0 }, 0)
+    .set(".hero-f2", { autoAlpha: 0 }, 0)
+    .set(eyebrow, { opacity: 1 }, 0)
+    .call(() => setFrame(0), null, 0)
+    .fromTo(".hero-orb", { scale: .55, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.6, ease: "expo.out" }, .1)
+    .fromTo(".cx-c", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: .6, ease: "back.out(2)" }, .3)
+    .call(() => scramble(eyebrow, { duration: 900, glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#" }), null, .35)
+    .fromTo(chars, { opacity: 0, filter: "blur(14px)", yPercent: 45 },
+      { opacity: 1, filter: "blur(0px)", yPercent: 0, duration: 1, ease: "power3.out", stagger: .028 }, .6)
+    .to(bars[0], { scaleX: 1, duration: F1, ease: "none" }, 0)
+    // frame 1 → 2
+    .to(chars, { opacity: 0, filter: "blur(10px)", yPercent: -35, duration: .7, ease: "power2.in", stagger: .01 }, F1 - .9)
+    .to(eyebrow, { opacity: 0, duration: .5 }, F1 - .9)
+    .to(".hero-orb", { scale: 1.9, opacity: 0, duration: 1.1, ease: "power2.in" }, F1 - .9)
+    .to(".cx-c", { scale: 0, opacity: 0, duration: .4 }, F1 - .6)
+    .addLabel("f2", F1)
+    .set(".hero-f2", { autoAlpha: 1 }, F1 - .3)
+    .call(() => setFrame(1), null, F1)
+    .fromTo(".hero-tower", { yPercent: 26, opacity: 0, filter: "brightness(2.2) blur(8px)" },
+      { yPercent: 0, opacity: 1, filter: "brightness(1) blur(0px)", duration: 1.8, ease: "expo.out" }, F1 - .3)
+    .fromTo(".hero-halo", { opacity: 0, scale: .5 }, { opacity: 1, scale: 1, duration: 1.6, ease: "expo.out" }, F1 - .3)
+    .to(bars[1], { scaleX: 1, duration: F2, ease: "none" }, F1)
+    // frame 2 → loop
+    .to(".hero-tower", { opacity: 0, yPercent: 6, filter: "brightness(1.6) blur(6px)", duration: .8, ease: "power2.in" }, F1 + F2 - .8)
+    .to(".hero-halo", { opacity: 0, duration: .8 }, F1 + F2 - .8);
 
-  ScrollTrigger.create({
-    trigger: ".intro", start: "top 80px",
-    onEnter: () => hdr.classList.add("is-solid"),
-    onLeaveBack: () => hdr.classList.remove("is-solid")
-  });
+  frameBtns.forEach((b, i) => b.addEventListener("click", () => heroTl.play(i ? "f2" : "f1")));
+  // only animate while the hero is on screen
+  ScrollTrigger.create({ trigger: ".hero", start: "top bottom", end: "bottom top", onToggle: s => (s.isActive ? heroTl.resume() : heroTl.pause()) });
+  if (ABI.reduceMotion) { heroTl.pause(F1 - 1); setFrame(0); }
 
   /* ------------------------------------------------------------------
-     INTRO — word-by-word reading scrub
+     INTRO — word-by-word reading scrub; overview cards open on hover (+ highlights)
   ------------------------------------------------------------------ */
   const words = ABI.splitWords(document.querySelector(".intro-text"));
   gsap.to(words, {
     opacity: 1, stagger: .05, ease: "none",
-    scrollTrigger: { trigger: ".intro-text", start: "top 78%", end: "bottom 45%", scrub: true }
+    scrollTrigger: { trigger: ".intro-text", start: "top 80%", end: "bottom 50%", scrub: true }
   });
-
-  /* ------------------------------------------------------------------
-     OVERVIEW — expanding image cards
-  ------------------------------------------------------------------ */
   const cards = gsap.utils.toArray(".ov-card");
   cards.forEach(c => {
     const open = () => cards.forEach(o => o.classList.toggle("is-open", o === c));
     c.addEventListener("mouseenter", open);
     c.addEventListener("click", open);
+    c.addEventListener("focus", open);
   });
   gsap.from(cards, {
     clipPath: "inset(100% 0% 0% 0% round 28px)", duration: 1.3, ease: "expo.out", stagger: .12,
-    scrollTrigger: { trigger: ".overview", start: "top 82%" }
+    scrollTrigger: { trigger: ".overview", start: "top 85%" }
   });
 
   /* ------------------------------------------------------------------
-     LOCATION — connectivity map (draw-on + hover + zoom/pan)
+     LOCATION — new connectivity map + 5 category filters
   ------------------------------------------------------------------ */
-  const mapSvg = ABI.mountMap(document.getElementById("mapStage"));
-  const stage = document.getElementById("mapStage");
-  const viewport = document.getElementById("mapViewport");
-  const tip = document.getElementById("mapTip");
+  const stage = $("mapStage"), viewport = $("mapViewport"), tip = $("mapTip");
   const card = document.querySelector(".map-card");
-  const pois = [...mapSvg.querySelectorAll(".m-poi")];
-  const list = document.getElementById("poiList");
+  stage.innerHTML = window.ABI_MAP2_SVG || "";
+  const mapSvg = stage.querySelector("svg");
+  const q = s => (mapSvg ? [...mapSvg.querySelectorAll(s)] : []);
+  const pois = q(".m-poi");
+  const poiByName = {};
+  pois.forEach(p => (poiByName[p.dataset.name] = p));
 
-  pois.forEach((p, i) => {
-    const li = document.createElement("li");
-    li.innerHTML = `<b>${String(i + 1).padStart(2, "0")}</b>${p.dataset.name}`;
-    li.addEventListener("mouseenter", () => hot(p, true));
-    li.addEventListener("mouseleave", () => hot(p, false));
-    list.appendChild(li);
-    p.addEventListener("mouseenter", () => hot(p, true));
-    p.addEventListener("mouseleave", () => hot(p, false));
-    p.addEventListener("click", () => hot(p, !p.classList.contains("is-hot")));
-    p._li = li;
+  const CATS = [
+    { name: "Hạ tầng giao thông", places: ["Ga Phú Diễn", "Ga Cầu Diễn", "Cầu Nhật Tân"] },
+    { name: "Cơ quan hành chính", places: ["Đại sứ quán Hàn Quốc", "Khu đô thị Ngoại Giao Đoàn", "Bộ Công An", "Ủy ban Nhân dân TP. Hà Nội"] },
+    { name: "Khách sạn & Nhà hàng", places: ["Fraser Residence Hanoi", "InterContinental Hanoi Westlake", "Sheraton Hanoi", "Nhà hàng Đình Làng", "BBQ Chicken", "Crumbs Artelier", "Nhà hàng chay Mộc Nhiên", "Nhà hàng Bò Tơ Quán Mộc", "Quán nhậu Tự Do", "Nhà hàng Fu Rong Hua", "Nhà hàng Maison Sen Buffet"] },
+    { name: "Mua sắm & Giải trí", places: ["Lotte Mall Tây Hồ", "Lotte Center Hà Nội", "Indochina Plaza Hanoi (IPH)", "MM Mega Market", "K-Mart", "Bảo tàng Thiên nhiên Việt Nam", "Bảo tàng Dân tộc học Việt Nam", "Bảo tàng Hồ Chí Minh", "Hồ Tây", "Hồ Hoàn Kiếm"] },
+    { name: "Tiện ích lân cận", places: ["Trung tâm Samsung R&D", "Khu phức hợp Oriental Square", "IFC Hanoi", "Khu đô thị Ciputra", "Phòng khám Đa khoa Mirai", "Bệnh viện E", "Bệnh viện Mắt Ánh Sáng", "Trường Quốc tế Liên Hợp Quốc Hà Nội (UNIS)"] }
+  ];
+  const catBox = $("locCats");
+  const catEls = CATS.map((c, i) => {
+    const wrap = document.createElement("div");
+    wrap.className = "cat";
+    wrap.innerHTML = `<button type="button" class="cat-btn" aria-expanded="false"><b>${String(i + 1).padStart(2, "0")}</b><span>${c.name}</span><em>${c.places.length}</em></button><div class="cat-places"><ul></ul></div>`;
+    const ul = wrap.querySelector("ul");
+    c.places.forEach(name => {
+      const li = document.createElement("li");
+      li.textContent = name;
+      const p = poiByName[name];
+      if (p) {
+        p._li = li;
+        li.addEventListener("mouseenter", () => hot(p, true));
+        li.addEventListener("mouseleave", () => hot(p, false));
+        li.addEventListener("click", () => hot(p, true));
+      }
+      ul.appendChild(li);
+    });
+    wrap.querySelector(".cat-btn").addEventListener("click", () => openCat(i));
+    catBox.appendChild(wrap);
+    return wrap;
   });
+  let openIdx = -1;
+  function openCat(i) {
+    openIdx = openIdx === i ? -1 : i;
+    catEls.forEach((w, k) => { w.classList.toggle("is-open", k === openIdx); w.querySelector(".cat-btn").setAttribute("aria-expanded", k === openIdx); });
+    if (!mapSvg) return;
+    mapSvg.classList.toggle("is-filter", openIdx > -1);
+    const match = pois.filter(p => +p.dataset.cat === openIdx + 1);
+    pois.forEach(p => p.classList.toggle("is-match", match.includes(p)));
+    if (openIdx > -1) {
+      resetView();
+      gsap.fromTo(match.map(p => p.querySelector(".m-dot")).filter(Boolean), { scale: .4 }, { scale: 1, transformOrigin: "50% 50%", duration: .6, ease: "back.out(2.4)", stagger: .04 });
+    }
+  }
   function hot(p, on) {
-    pois.forEach(o => { if (o !== p) { o.classList.remove("is-hot"); o._li.classList.remove("is-hot"); } });
+    pois.forEach(o => { if (o !== p) { o.classList.remove("is-hot"); o._li && o._li.classList.remove("is-hot"); } });
     p.classList.toggle("is-hot", on);
-    p._li.classList.toggle("is-hot", on);
+    p._li && p._li.classList.toggle("is-hot", on);
     if (on) {
-      const r = p.querySelector(".m-hit").getBoundingClientRect();
+      const r = (p.querySelector(".m-dot") || p).getBoundingClientRect();
       const cr = card.getBoundingClientRect();
       tip.textContent = p.dataset.name;
       tip.style.left = r.left - cr.left + r.width / 2 + "px";
@@ -96,22 +264,39 @@
     }
     tip.classList.toggle("is-on", on);
   }
+  pois.forEach(p => {
+    p.addEventListener("mouseenter", () => hot(p, true));
+    p.addEventListener("mouseleave", () => hot(p, false));
+    p.addEventListener("click", () => hot(p, !p.classList.contains("is-hot")));
+  });
+
+  // legend of coloured traffic axes
+  const legend = $("mapLegend");
+  (window.ABI_MAP2_ROADS || []).forEach(r => {
+    const li = document.createElement("li");
+    li.style.setProperty("--c", r.color);
+    li.innerHTML = `<i></i>${r.name}`;
+    legend.appendChild(li);
+  });
 
   // draw-on sequence
-  const mapTl = gsap.timeline({ scrollTrigger: { trigger: ".map-card", start: "top 75%" } });
-  mapTl
-    .from(mapSvg.querySelectorAll(".m-street path"), { opacity: 0, duration: 1, stagger: .01 })
-    .to(mapSvg.querySelectorAll(".m-ring path"), { strokeDashoffset: 0, duration: 1.6, ease: "power2.inOut", stagger: .08 }, .2)
-    .to(mapSvg.querySelector(".m-areas"), { opacity: 1, duration: .8 }, .8)
-    .to(mapSvg.querySelector(".m-rlabels"), { opacity: 1, duration: .6 }, 1.4)
-    .to(mapSvg.querySelector(".m-noibai"), { opacity: 1, duration: .6 }, 1.6)
-    .to(mapSvg.querySelector(".m-icons"), { opacity: 1, duration: .8 }, 1.2)
-    .from(mapSvg.querySelector(".m-pin"), { y: -40, opacity: 0, duration: .9, ease: "bounce.out" }, 1.3)
-    .from(mapSvg.querySelector(".m-logo"), { opacity: 0, x: -20, duration: .8 }, 1.5);
+  if (mapSvg) {
+    const rings = q(".m-rings circle, .m-rings path"), roads = q(".m-road path");
+    gsap.set([...rings, ...roads], { strokeDasharray: 1, strokeDashoffset: 1 });
+    const mapTl = gsap.timeline({ scrollTrigger: { trigger: ".map-card", start: "top 75%" } });
+    mapTl.from(q(".m-street"), { opacity: 0, duration: .8 })
+      .to(rings, { strokeDashoffset: 0, duration: 1.4, ease: "power2.inOut", stagger: .12 }, .1)
+      .to(roads, { strokeDashoffset: 0, duration: 1.4, ease: "power2.inOut", stagger: .06 }, .3)
+      .from(q(".m-rlabels, .m-areas, .m-bridge"), { opacity: 0, duration: .6 }, 1.1)
+      .from(q(".m-poi .m-dot"), { scale: 0, transformOrigin: "50% 50%", duration: .5, ease: "back.out(2)", stagger: .02 }, 1)
+      .from(q(".m-poi .m-glyph, .m-poi .m-lbl"), { opacity: 0, duration: .5 }, 1.5)
+      .from(q(".m-pin"), { y: -40, opacity: 0, duration: .9, ease: "bounce.out" }, 1.2);
+  }
 
   // zoom & pan
   const view = { s: 1, x: 0, y: 0 };
-  const PIN = { x: 619.9 / 1877.43, y: 527 / 1106.01 };
+  const META = window.ABI_MAP2_META || { w: 1877.43, h: 1106.01, pin: { x: 940, y: 540 } };
+  const PIN = { x: META.pin.x / META.w, y: META.pin.y / META.h };
   function clampView() {
     const w = viewport.clientWidth, h = viewport.clientHeight;
     view.x = Math.min(0, Math.max(w - w * view.s, view.x));
@@ -120,11 +305,11 @@
   function applyView(animate = true) {
     clampView();
     gsap.to(stage, { x: view.x, y: view.y, scale: view.s, duration: animate ? .7 : 0, ease: "power3.out" });
-    mapSvg.classList.toggle("show-labels", view.s >= 1.9);
   }
+  function resetView() { view.s = 1; view.x = 0; view.y = 0; applyView(); }
   function zoomAt(s, fx, fy) {
     const w = viewport.clientWidth, h = viewport.clientHeight;
-    const px = (fx * w - view.x) / view.s, py = (fy * h - view.y) / view.s; // content point under focus
+    const px = (fx * w - view.x) / view.s, py = (fy * h - view.y) / view.s;
     view.s = Math.min(3.2, Math.max(1, s));
     view.x = fx * w - px * view.s; view.y = fy * h - py * view.s;
     applyView();
@@ -153,146 +338,150 @@
   viewport.addEventListener("pointercancel", endDrag);
 
   /* ------------------------------------------------------------------
-     DESIGN INSPIRATION — cloud images appear one after another
+     DESIGN INSPIRATION — the three images appear one after another
   ------------------------------------------------------------------ */
-  const frames = gsap.utils.toArray(".cs-frame");
-  const dots = gsap.utils.toArray(".cs-dots i");
-  gsap.set(frames.slice(1), { clipPath: "inset(100% 0% 0% 0% round 28px)" });
-  gsap.set(frames[0], { clipPath: "inset(0% 0% 0% 0% round 28px)" });
-  dots[0].classList.add("is-on");
-  const setDot = i => dots.forEach((d, k) => d.classList.toggle("is-on", k === i));
-
-  mm.add("(min-width: 721px)", () => {
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: ".cloudsec", start: "top top", end: "+=220%", scrub: 1, pin: ".cloudsec-pin", anticipatePin: 1,
-        onUpdate: self => setDot(Math.min(2, Math.floor(self.progress * 3)))
-      }
-    });
-    tl.from(".cs-copy > *", { y: 40, opacity: 0, stagger: .1, duration: .5 }, 0)
-      .to(frames[0], { scale: .92, duration: 1 }, .4)
-      .to(frames[1], { clipPath: "inset(0% 0% 0% 0% round 28px)", duration: 1, ease: "power2.inOut" }, .4)
-      .fromTo(frames[1].querySelector("img"), { scale: 1.25 }, { scale: 1, duration: 1.2, ease: "none" }, .4)
-      .to(frames[1], { scale: .92, duration: 1 }, 1.5)
-      .to(frames[2], { clipPath: "inset(0% 0% 0% 0% round 28px)", duration: 1, ease: "power2.inOut" }, 1.5)
-      .fromTo(frames[2].querySelector("img"), { scale: 1.25 }, { scale: 1, duration: 1.2, ease: "none" }, 1.5);
+  const cgs = gsap.utils.toArray(".cg");
+  const csTl = gsap.timeline({ scrollTrigger: { trigger: ".cloudsec", start: "top 70%", end: "top 5%", scrub: 1 } });
+  cgs.forEach((f, i) => {
+    csTl.fromTo(f, { clipPath: "inset(100% 0% 0% 0% round 28px)" }, { clipPath: "inset(0% 0% 0% 0% round 28px)", duration: 1, ease: "power2.inOut" }, i * .55)
+      .fromTo(f.querySelector("img"), { scale: 1.25 }, { scale: 1, duration: 1.2, ease: "none" }, i * .55);
   });
-  mm.add("(max-width: 720px)", () => {
-    frames.forEach((f, i) => i && gsap.to(f, {
-      clipPath: "inset(0% 0% 0% 0% round 28px)", ease: "none",
-      scrollTrigger: { trigger: ".cloudsec", start: `top+=${i * 30}% top`, end: `+=40%`, scrub: true }
-    }));
-  });
+  gsap.from(".cs-copy > *", { y: 34, opacity: 0, stagger: .1, duration: 1, ease: "expo.out", scrollTrigger: { trigger: ".cs-copy", start: "top 90%" } });
 
   /* ------------------------------------------------------------------
-     GRADE A — ribbons wrap around the tower (ref: The Spiral)
+     GRADE A — glowing rings ("viền") wrap the tower, callouts light up
   ------------------------------------------------------------------ */
-  const NS = "http://www.w3.org/2000/svg";
-  const front = document.querySelector(".ribbons-front");
-  const back = document.querySelector(".ribbons-back");
-  const CORNER = 263, W = 737, T = 84;
-  const BANDS = [440, 720, 990];
-  const el = (tag, attrs, parent) => {
-    const n = document.createElementNS(NS, tag);
-    for (const k in attrs) n.setAttribute(k, attrs[k]);
-    parent && parent.appendChild(n);
-    return n;
-  };
-  const pts = a => a.map(p => p.join(",")).join(" ");
-  const defsF = el("defs", {}, front), defsB = el("defs", {}, back);
-  const gL = el("linearGradient", { id: "rbL", x1: 0, x2: 1, y1: 0, y2: 0 }, defsF);
-  el("stop", { offset: 0, "stop-color": "#7fd8f8" }, gL); el("stop", { offset: 1, "stop-color": "#00aeef" }, gL);
-  const gR = el("linearGradient", { id: "rbR", x1: 0, x2: 1, y1: 0, y2: 0 }, defsF);
-  el("stop", { offset: 0, "stop-color": "#00aeef" }, gR); el("stop", { offset: 1, "stop-color": "#21409a" }, gR);
-  const gB = el("linearGradient", { id: "rbB", x1: 0, x2: 1, y1: 0, y2: 0 }, defsB);
-  el("stop", { offset: 0, "stop-color": "#21409a" }, gB); el("stop", { offset: 1, "stop-color": "#232960" }, gB);
-
-  const bandClips = BANDS.map((yC, i) => {
+  const front = document.querySelector(".rings-front"), back = document.querySelector(".rings-back");
+  const CORNER = 263, W = 737, GAP = 26;
+  const RINGS = [430, 720, 990];
+  const ringParts = RINGS.map(yC => {
     const yL = yC - 50, yR = yC + 150;
-    const cf = el("clipPath", { id: "cf" + i }, defsF);
-    const rf = el("rect", { x: -90, y: 0, width: 0, height: 1465 }, cf);
-    const cb = el("clipPath", { id: "cb" + i }, defsB);
-    const rb = el("rect", { x: -90, y: 0, width: 0, height: 1465 }, cb);
-    // back tails (left: emerging from behind, right: wrapping behind)
-    const gb = el("g", { "clip-path": `url(#cb${i})` }, back);
-    el("polygon", { class: "band-face", fill: "url(#rbB)", points: pts([[-58, yL + 40], [0, yL], [0, yL + T], [-58, yL + 40 + T]]) }, gb);
-    el("polygon", { class: "band-face", fill: "url(#rbB)", points: pts([[W, yR], [W + 66, yR - 46], [W + 66, yR - 46 + T], [W, yR + T]]) }, gb);
-    // front faces
-    const gf = el("g", { "clip-path": `url(#cf${i})` }, front);
-    el("polygon", { class: "band-face", fill: "url(#rbL)", points: pts([[0, yL], [CORNER, yC], [CORNER, yC + T], [0, yL + T]]) }, gf);
-    el("polygon", { class: "band-face", fill: "url(#rbR)", points: pts([[CORNER, yC], [W, yR], [W, yR + T], [CORNER, yC + T]]) }, gf);
-    el("polyline", { class: "band-edge", points: pts([[0, yL], [CORNER, yC], [W, yR]]) }, gf);
-    el("polyline", { class: "band-edge", points: pts([[0, yL + T], [CORNER, yC + T], [W, yR + T]]) }, gf);
-    return [rf, rb];
+    const Lp = [-46, yL - 8], C = [CORNER, yC + 18], R = [W + 48, yR + 10];
+    const B = [R[0] + Lp[0] - C[0], R[1] + Lp[1] - C[1]];
+    const off = p => [p[0], p[1] + GAP];
+    const g = el("g", {}, front), gb = el("g", {}, back);
+    const fill = el("polygon", { class: "r-fill", points: pts([Lp, C, R, off(R), off(C), off(Lp)]), opacity: 0 }, g);
+    const f1 = el("path", { class: "r-base", d: `M${pts([Lp, C, R])}`, pathLength: 1 }, g);
+    const f2 = el("path", { class: "r-base", d: `M${pts([off(Lp), off(C), off(R)])}`, pathLength: 1 }, g);
+    const glow = el("path", { class: "r-glow", d: `M${pts([Lp, C, R])}`, pathLength: 1 }, g);
+    const b1 = el("path", { class: "r-base", d: `M${pts([R, B, Lp])}`, pathLength: 1 }, gb);
+    const b2 = el("path", { class: "r-base", d: `M${pts([off(R), off(B), off(Lp)])}`, pathLength: 1 }, gb);
+    [f1, f2, b1, b2].forEach(p => gsap.set(p, { strokeDasharray: "1 1", strokeDashoffset: 1 }));
+    gsap.set(glow, { strokeDasharray: "0.08 0.92", strokeDashoffset: 0.08, opacity: 0 });
+    return { fill, f1, f2, b1, b2, glow, anchorL: Lp, anchorR: R };
   });
-  const usps = gsap.utils.toArray(".usp");
+  const calls = gsap.utils.toArray(".call");
+  const leaders = document.querySelector(".leaders");
+  const leadPaths = calls.map(() => el("path", { pathLength: 1 }, leaders));
+  const leadDots = calls.map(() => el("circle", { r: 3.5 }, leaders));
+  const leadSide = ["R", "L", "R"];
+  function layoutLeaders() {
+    const sb = document.querySelector(".ga-stage").getBoundingClientRect();
+    leaders.setAttribute("viewBox", `0 0 ${sb.width} ${sb.height}`);
+    const m = front.getScreenCTM();
+    if (!m) return;
+    calls.forEach((c, i) => {
+      const a = leadSide[i] === "R" ? ringParts[i].anchorR : ringParts[i].anchorL;
+      const pt = front.createSVGPoint(); pt.x = a[0]; pt.y = a[1] + GAP / 2;
+      const sp = pt.matrixTransform(m);
+      const ax = sp.x - sb.left, ay = sp.y - sb.top;
+      const cb = c.getBoundingClientRect();
+      const cx = leadSide[i] === "R" ? cb.left - sb.left : cb.right - sb.left;
+      const cy = cb.top - sb.top + 34;
+      const mx = leadSide[i] === "R" ? cx - 30 : cx + 30;
+      leadPaths[i].setAttribute("d", `M${ax},${ay} L${mx},${cy} L${cx},${cy}`);
+      leadDots[i].setAttribute("cx", ax); leadDots[i].setAttribute("cy", ay);
+    });
+  }
+  ringParts.forEach((r, i) => gsap.to(r.glow, { strokeDashoffset: -0.92, duration: 2.6, ease: "none", repeat: -1, delay: i * .5 }));
 
-  mm.add("(min-width: 721px)", () => {
+  const GA_FULL = "(min-width: 1101px), (min-width: 721px) and (orientation: landscape)";
+  mm.add(GA_FULL, () => {
+    layoutLeaders();
+    leadPaths.forEach(p => gsap.set(p, { strokeDasharray: "1 1", strokeDashoffset: 1 }));
+    gsap.set(leadDots, { scale: 0, transformOrigin: "center" });
+    gsap.set(calls, { opacity: 0, y: 30 });
     const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: ".gradea", start: "top top", end: "+=240%", scrub: 1, pin: ".ga-pin", anticipatePin: 1,
-        onUpdate: self => {
-          const k = Math.min(2, Math.floor(self.progress * 3.05));
-          usps.forEach((u, i) => u.classList.toggle("is-on", self.progress > .04 && i <= k && i === k));
-        }
-      }
+      scrollTrigger: { trigger: ".gradea", start: "top top", end: "+=200%", scrub: 1, pin: ".ga-pin", anticipatePin: 1, onRefresh: layoutLeaders }
     });
     tl.from(".ga-head > *", { y: 40, opacity: 0, stagger: .1, duration: .4 }, 0)
-      .from(".ga-tower", { y: 80, duration: 1, ease: "power2.out" }, 0);
-    bandClips.forEach(([rf, rb], i) => {
-      const at = .3 + i * 1;
-      tl.to(rb, { attr: { width: 70 }, duration: .15, ease: "none" }, at)
-        .to(rf, { attr: { width: 920 }, duration: .7, ease: "power1.inOut" }, at + .05)
-        .to(rb, { attr: { width: 920 }, duration: .1, ease: "none" }, at + .65);
+      .from(".ga-tower", { y: 120, duration: 1, ease: "power2.out" }, 0);
+    ringParts.forEach((r, i) => {
+      const t = .5 + i * 1.1;
+      tl.to([r.b1, r.b2], { strokeDashoffset: 0, duration: .25, ease: "none" }, t)
+        .to([r.f1, r.f2], { strokeDashoffset: 0, duration: .6, ease: "power1.inOut" }, t + .1)
+        .to(r.fill, { attr: { opacity: 1 }, duration: .3 }, t + .5)
+        .to(leadDots[i], { scale: 1, duration: .15 }, t + .55)
+        .to(leadPaths[i], { strokeDashoffset: 0, duration: .3 }, t + .6)
+        .to(calls[i], { opacity: 1, y: 0, duration: .35 }, t + .7)
+        .set(r.glow, { opacity: 1 }, t + .7);
     });
     tl.to({}, { duration: .4 });
+    window.addEventListener("resize", layoutLeaders);
+    return () => window.removeEventListener("resize", layoutLeaders);
   });
-  mm.add("(max-width: 720px)", () => {
-    bandClips.forEach(([rf, rb], i) => {
-      gsap.to([rf, rb], { attr: { width: 920 }, duration: 1.2, delay: i * .25, ease: "power2.inOut", scrollTrigger: { trigger: ".ga-tower", start: "top 70%" } });
+  mm.add("(max-width: 720px), (max-width: 1100px) and (orientation: portrait)", () => {
+    ringParts.forEach((r, i) => {
+      const st = { trigger: ".ga-tower", start: "top 70%" };
+      gsap.to([r.b1, r.b2, r.f1, r.f2], { strokeDashoffset: 0, duration: 1.2, delay: i * .3, scrollTrigger: st });
+      gsap.to(r.fill, { attr: { opacity: 1 }, duration: .6, delay: .8 + i * .3, scrollTrigger: st });
+      gsap.set(r.glow, { opacity: 1 });
     });
-    usps.forEach(u => u.classList.add("is-on"));
   });
 
   /* ------------------------------------------------------------------
      STACKING PLAN — isometric, clickable floors → NLA panel
+     Client corrections (2026-10-30): typical office 10F–13F; ABI Tower office 14F–16F;
+     rooftop sits above 16F; plans = brochure plates with zone colours + legend.
   ------------------------------------------------------------------ */
-  const iso = document.getElementById("iso");
-  const C = .866, S = .5, L = 240, D = 140, OX = 175, OY = 412, FH = 20;
-  const P = (x, y, z) => [OX + (x - z) * C, OY + (x + z) * S - y];
+  const SRC = ABI.stack;
+  const G = id => SRC.groups.find(g => g.id === id);
+  const LEG_1F = [["Commercial", "#cceffc"], ["Lobby/Hall", "#e6f7fd"], ["Outdoor Parking", "#dcdbdb"], ["Common Area & Technical Area", "#edf5fc"]];
+  const LEG_OF = [["Office", "#d0d2dd"], ["Green Area", "#d3e9bb"], ["Common Area & Technical Area", "#e7eef6"]];
+  const STACK = {
+    summary: SRC.summary,
+    groups: [
+      { ...G("f16"), id: "rf", floors: ["R"], tag: "Rooftop", title: "Tầng thượng" },
+      { ...G("f15"), id: "f14-16", floors: ["16", "15", "14"], tag: "14F – 16F", title: "Tầng 14F-16F: Văn phòng ABI Tower" },
+      { ...G("f10-14"), id: "f10-13", floors: ["13", "12", "11", "10"], tag: "10F – 13F", plan: "b-10-13f.webp", legend: LEG_OF },
+      { ...G("f6-9"), plan: "b-6-9f.webp", legend: LEG_OF },
+      { ...G("f3-5"), plan: "b-3-5f.webp", legend: LEG_OF },
+      { ...G("f2"), plan: "b-2f.webp", legend: LEG_OF },
+      { ...G("f1"), plan: "b-1f.webp", legend: LEG_1F },
+      G("fb")
+    ]
+  };
+
+  const iso = $("iso");
+  const Cc = .866, Ss = .5, L = 240, D = 140, OX = 175, OY = 412, FH = 20;
+  const P = (x, y, z) => [OX + (x - z) * Cc, OY + (x + z) * Ss - y];
   const floorsSpec = [];   // bottom → top
   floorsSpec.push({ key: "B2", y0: -40, y1: -20 }, { key: "B1", y0: -20, y1: 0 }, { key: "1", y0: 0, y1: 30 });
   for (let f = 2; f <= 16; f++) floorsSpec.push({ key: String(f), y0: 30 + (f - 2) * FH, y1: 30 + (f - 1) * FH });
-  const roofY = 30 + 15 * FH;
+  const roofY = 30 + 15 * FH, ti = 60, tz = 36, th = 16;
+  floorsSpec.push({ key: "R", y0: roofY, y1: roofY + th, roof: true });
 
   el("polygon", { class: "ground", points: pts([P(-30, 0, -30), P(L + 30, 0, -30), P(L + 30, 0, D + 30), P(-30, 0, D + 30)]) }, iso);
-  const groupEls = {};
-  const order = [];
-  ABI.stack.groups.slice().reverse().forEach(g => {        // bottom → top
+  const groupEls = {}, order = [];
+  STACK.groups.slice().reverse().forEach(g => {        // bottom → top
     const ge = el("g", { class: `grp t-${g.type}`, "data-g": g.id, tabindex: 0, role: "button", "aria-label": g.tag }, iso);
     groupEls[g.id] = ge; order.push(ge);
     floorsSpec.filter(f => g.floors.includes(f.key)).forEach(f => {
       const fe = el("g", { class: "fl" + (f.key.startsWith("B") ? " is-basement" : "") }, ge);
       const a = f.y0, b = f.y1;
-      el("polygon", { class: "fz-l", points: pts([P(0, a, D), P(L, a, D), P(L, b, D), P(0, b, D)]) }, fe);
-      el("polygon", { class: "fz-r", points: pts([P(L, a, 0), P(L, a, D), P(L, b, D), P(L, b, 0)]) }, fe);
-      el("polygon", { class: "fz-t", points: pts([P(0, b, 0), P(L, b, 0), P(L, b, D), P(0, b, D)]) }, fe);
+      const x0 = f.roof ? ti : 0, x1 = f.roof ? L - ti : L, z0 = f.roof ? tz : 0, z1 = f.roof ? D - tz : D;
+      el("polygon", { class: "fz-l", points: pts([P(x0, a, z1), P(x1, a, z1), P(x1, b, z1), P(x0, b, z1)]) }, fe);
+      el("polygon", { class: "fz-r", points: pts([P(x1, a, z0), P(x1, a, z1), P(x1, b, z1), P(x1, b, z0)]) }, fe);
+      el("polygon", { class: "fz-t", points: pts([P(x0, b, z0), P(x1, b, z0), P(x1, b, z1), P(x0, b, z1)]) }, fe);
     });
   });
-  // rooftop "tum" block
-  const tum = el("g", { class: "fl tum" }, iso);
-  const ti = 60, tz = 36, th = 16;
-  el("polygon", { class: "fz-l", points: pts([P(ti, roofY, D - tz), P(L - ti, roofY, D - tz), P(L - ti, roofY + th, D - tz), P(ti, roofY + th, D - tz)]) }, tum);
-  el("polygon", { class: "fz-r", points: pts([P(L - ti, roofY, tz), P(L - ti, roofY, D - tz), P(L - ti, roofY + th, D - tz), P(L - ti, roofY + th, tz)]) }, tum);
-  el("polygon", { class: "fz-t", points: pts([P(ti, roofY + th, tz), P(L - ti, roofY + th, tz), P(L - ti, roofY + th, D - tz), P(ti, roofY + th, D - tz)]) }, tum);
-  tum.querySelectorAll("polygon").forEach(p => { p.style.stroke = "#232960"; p.style.strokeWidth = 1; });
 
   // labels with leader lines
   const lblEls = {}, lblGroups = {};
-  ABI.stack.groups.forEach(g => {
+  STACK.groups.forEach(g => {
     const fs = floorsSpec.filter(f => g.floors.includes(f.key));
     const ymid = (Math.min(...fs.map(f => f.y0)) + Math.max(...fs.map(f => f.y1))) / 2;
-    const [x, y] = P(L, ymid, 0);
+    const [x, y] = P(fs[0].roof ? L - ti : L, ymid, fs[0].roof ? tz : 0);
     const lg = el("g", { class: "lblg" }, iso);
     el("line", { class: "lead", x1: x + 8, y1: y, x2: 470, y2: y }, lg);
     const t = el("text", { class: "lbl", x: 478, y: y + 4 }, lg);
@@ -301,21 +490,17 @@
   });
 
   // panel
-  const chips = document.getElementById("fpChips");
-  const $ = id => document.getElementById(id);
-  ABI.stack.groups.forEach(g => {
+  const chips = $("fpChips");
+  STACK.groups.forEach(g => {
     const b = document.createElement("button");
-    b.type = "button"; b.role = "tab"; b.textContent = g.tag; b.dataset.g = g.id;
+    b.type = "button"; b.setAttribute("role", "tab"); b.textContent = g.tag; b.dataset.g = g.id;
     b.addEventListener("click", () => select(g.id));
     chips.appendChild(b);
   });
   let active = null;
   function select(id) {
-    const g = ABI.stack.groups.find(x => x.id === id);
-    if (active) {
-      groupEls[active].classList.remove("is-active");
-      lblEls[active].classList.remove("is-active");
-    }
+    const g = STACK.groups.find(x => x.id === id);
+    if (active) { groupEls[active].classList.remove("is-active"); lblEls[active].classList.remove("is-active"); }
     active = id;
     const ge = groupEls[id];
     ge.classList.add("is-active");
@@ -323,11 +508,10 @@
     // explode: everything above the chosen floors lifts so its top slab is revealed
     const idx = order.indexOf(ge);
     order.forEach((o, i) => gsap.to([o, lblGroups[o.dataset.g]], { y: i > idx ? -34 : 0, duration: .7, ease: "power3.inOut" }));
-    gsap.to(tum, { y: -34, duration: .7, ease: "power3.inOut" });
     chips.querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", b.dataset.g === id));
 
-    const panel = [$("fpTag"), $("fpTitle"), $("fpNla"), $("fpDesc"), $("fpMedia")];
-    gsap.fromTo(panel, { y: 14, opacity: 0 }, { y: 0, opacity: 1, stagger: .05, duration: .5, ease: "power2.out" });
+    const panel = [$("fpTag"), $("fpNla"), $("fpTitle"), $("fpDesc"), $("fpMedia"), $("fpLegend")];
+    gsap.fromTo(panel, { y: 12, opacity: 0 }, { y: 0, opacity: 1, stagger: .04, duration: .5, ease: "power2.out" });
     $("fpTag").textContent = g.tag;
     $("fpTitle").textContent = g.title;
     $("fpNla").textContent = g.nla ? "Diện tích cho thuê: " + g.nla : "";
@@ -337,6 +521,7 @@
     media.innerHTML = g.plan
       ? `<img src="../assets/plans/${g.plan}" alt="Mặt bằng ${g.tag}">`
       : `<img src="../assets/img/${g.img}" alt="${g.title}">`;
+    $("fpLegend").innerHTML = (g.legend || []).map(([k, c]) => `<li><i style="--c:${c}"></i>${k}</li>`).join("");
   }
   Object.entries(groupEls).forEach(([id, ge]) => {
     ge.addEventListener("mouseenter", () => ge.classList.add("is-hover"));
@@ -344,16 +529,16 @@
     ge.addEventListener("click", () => select(id));
     ge.addEventListener("keydown", e => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), select(id)));
   });
-  select("f10-14");
+  select("f10-13");
 
-  gsap.from(iso.querySelectorAll(".grp .fl, .tum"), {
+  gsap.from(iso.querySelectorAll(".grp .fl"), {
     opacity: 0, duration: .5, ease: "power2.out", stagger: { each: .05, from: "start" },
     scrollTrigger: { trigger: ".stack", start: "top 70%" }
   });
 
-  // stats count-up
+  // stats (top row, next to the title) count up
   const stats = $("stackStats");
-  ABI.stack.summary.forEach(s => {
+  STACK.summary.forEach(s => {
     const d = document.createElement("div");
     d.innerHTML = `<dt>${s.k}</dt><dd><span>${s.v}</span>${s.unit ? `<small>${s.unit}</small>` : ""}</dd>`;
     stats.appendChild(d);
@@ -363,50 +548,81 @@
     const obj = { v: 0 };
     gsap.to(obj, {
       v: target, duration: 1.8, ease: "power2.out",
-      scrollTrigger: { trigger: stats, start: "top 85%" },
+      scrollTrigger: { trigger: stats, start: "top 90%" },
       onUpdate: () => { span.textContent = obj.v.toLocaleString("vi-VN", { minimumFractionDigits: dec, maximumFractionDigits: dec }); }
     });
   });
 
   /* ------------------------------------------------------------------
-     AMENITIES — draggable track
+     AMENITIES — hover list swaps the image with a wipe
   ------------------------------------------------------------------ */
-  const track = document.getElementById("amenTrack");
-  const bar = document.getElementById("amenBar");
-  let tx = 0, tDrag = null;
-  const maxX = () => Math.min(0, -(track.scrollWidth - track.clientWidth));
-  const setTx = (v, animate) => {
-    tx = Math.max(maxX(), Math.min(0, v));
-    gsap.to(track, { x: tx, duration: animate ? .9 : .25, ease: "power3.out" });
-    const m = maxX();
-    gsap.to(bar, { width: (m ? 25 + 75 * (tx / m) : 100) + "%", duration: .4 });
-  };
-  track.addEventListener("pointerdown", e => { tDrag = { x: e.clientX, t: tx, moved: 0 }; track.classList.add("is-drag"); track.setPointerCapture(e.pointerId); });
-  track.addEventListener("pointermove", e => { if (!tDrag) return; tDrag.moved = e.clientX - tDrag.x; setTx(tDrag.t + tDrag.moved * 1.2); });
-  const tEnd = () => { tDrag = null; track.classList.remove("is-drag"); };
-  track.addEventListener("pointerup", tEnd); track.addEventListener("pointercancel", tEnd);
-  document.querySelectorAll(".amen-nav button").forEach(b => b.addEventListener("click", () => {
-    const step = track.querySelector(".amen-card").offsetWidth + 18;
-    setTx(tx - step * +b.dataset.dir, true);
-  }));
-  gsap.from(".amen-card", {
-    y: 80, opacity: 0, duration: 1.1, ease: "expo.out", stagger: .1,
-    scrollTrigger: { trigger: ".amen-track", start: "top 85%" }
+  const items = gsap.utils.toArray(".amen-list li");
+  const imgs = gsap.utils.toArray(".amen-view img");
+  let ai = 0, z = 1;
+  function showAmen(i) {
+    if (i === ai) return;
+    items.forEach((li, k) => li.classList.toggle("is-on", k === i));
+    const img = imgs[i];
+    img.style.zIndex = ++z;
+    gsap.fromTo(img, { clipPath: "inset(0% 100% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: .9, ease: "expo.inOut" });
+    gsap.fromTo(img, { scale: 1.15 }, { scale: 1, duration: 1.2, ease: "expo.out" });
+    ai = i;
+  }
+  items.forEach((li, i) => {
+    li.addEventListener("mouseenter", () => showAmen(i));
+    li.addEventListener("click", () => showAmen(i));
+    li.addEventListener("focus", () => showAmen(i));
   });
+  gsap.from(items, { x: -40, opacity: 0, stagger: .08, duration: 1, ease: "expo.out", scrollTrigger: { trigger: ".amen-list", start: "top 85%" } });
+  gsap.from(".amen-view", { clipPath: "inset(0% 100% 0% 0% round 28px)", duration: 1.4, ease: "expo.inOut", scrollTrigger: { trigger: ".amen-view", start: "top 85%" } });
 
   /* ------------------------------------------------------------------
-     LEED + LEASING
+     AWARDS + NEWS + LEASING
   ------------------------------------------------------------------ */
-  gsap.to(".leed-bg", { yPercent: 10, ease: "none", scrollTrigger: { trigger: ".leed", start: "top bottom", end: "bottom top", scrub: true } });
-  gsap.from(".leed-badge", { rotate: -120, scale: .6, opacity: 0, duration: 1.4, ease: "back.out(1.4)", scrollTrigger: { trigger: ".leed-card", start: "top 75%" } });
-  gsap.from(".leed-card", { y: 60, opacity: 0, duration: 1.2, ease: "expo.out", scrollTrigger: { trigger: ".leed-card", start: "top 85%" } });
-  gsap.from(".lease-card", { y: 80, scale: .96, opacity: 0, duration: 1.2, ease: "expo.out", scrollTrigger: { trigger: ".lease", start: "top 80%" } });
-  ABI.mountQR(document.getElementById("qr"), 148);
+  gsap.from(".aw-item", { y: 40, opacity: 0, stagger: .12, duration: 1, ease: "expo.out", scrollTrigger: { trigger: ".aw-list", start: "top 88%" } });
+  gsap.from(".aw-logo img", { scale: .6, rotate: -12, opacity: 0, stagger: .12, duration: 1.2, ease: "back.out(1.6)", scrollTrigger: { trigger: ".aw-list", start: "top 88%" } });
+  gsap.from(".aw-media", { clipPath: "inset(100% 0% 0% 0% round 28px)", duration: 1.4, ease: "expo.inOut", scrollTrigger: { trigger: ".aw-media", start: "top 85%" } });
+  gsap.fromTo(".aw-media img", { scale: 1.15 }, { scale: 1, ease: "none", scrollTrigger: { trigger: ".awards", start: "top bottom", end: "bottom top", scrub: true } });
+  gsap.from(".news-card", { y: 50, opacity: 0, stagger: .1, duration: 1, ease: "expo.out", scrollTrigger: { trigger: ".news-grid", start: "top 88%" } });
+  gsap.from(".lease-card", { y: 60, opacity: 0, duration: 1.2, ease: "expo.out", scrollTrigger: { trigger: ".lease", start: "top 85%" } });
+  ABI.mountQR($("qr"), 120);
+
+  // lead form (demo: validates, nothing is sent)
+  const form = $("leadForm"), msg = $("leadMsg");
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    const f = form.elements;
+    const bad = [];
+    const need = (input, ok) => { input.classList.toggle("is-bad", !ok); if (!ok) bad.push(input); };
+    need(f.name, f.name.value.trim().length > 1);
+    need(f.email, /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value.trim()));
+    need(f.phone, f.phone.value.replace(/\D/g, "").length >= 9);
+    const checks = form.querySelector(".f-checks");
+    const anyInterest = [...form.querySelectorAll('[name="interest"]')].some(c => c.checked);
+    checks.classList.toggle("is-bad", !anyInterest);
+    msg.className = "f-msg";
+    if (bad.length || !anyInterest) {
+      msg.classList.add("is-err");
+      msg.textContent = "Vui lòng điền đủ các mục có dấu *";
+      (bad[0] || checks.querySelector("input")).focus();
+      return;
+    }
+    msg.classList.add("is-ok");
+    msg.textContent = "Cảm ơn bạn! (Bản demo — thông tin chưa được gửi đi)";
+    form.reset();
+  });
 
   // generic reveal for section headings
-  gsap.utils.toArray(".loc-copy > *, .stack-head > *, .amen-head > *").forEach(n => gsap.from(n, {
-    y: 36, opacity: 0, duration: 1, ease: "expo.out", scrollTrigger: { trigger: n, start: "top 88%" }
+  gsap.utils.toArray(".loc-copy > *, .stack-head > *, .amen-head > *, .aw-copy > .eyebrow, .aw-copy > .h2, .aw-copy > .body, .news-head > *").forEach(n => gsap.from(n, {
+    y: 30, opacity: 0, duration: 1, ease: "expo.out", scrollTrigger: { trigger: n, start: "top 90%" }
   }));
 
-  window.addEventListener("load", () => ScrollTrigger.refresh());
+  // nav: mark the section in view
+  const navMap = [["#top", ".hero"], ["#gioi-thieu", ".intro"], ["#cam-hung", ".cloudsec"], ["#van-phong", ".gradea"], ["#tien-ich", ".amen"], ["#lien-he", ".lease"]];
+  navMap.forEach(([href, sel]) => {
+    const a = hdr.querySelector(`.hdr-nav a[href="${href}"]`);
+    ScrollTrigger.create({ trigger: sel, start: "top 45%", end: "bottom 45%", onToggle: s => a && a.classList.toggle("is-current", s.isActive) });
+  });
+
+  window.addEventListener("load", () => { ScrollTrigger.refresh(); paintGrad(); });
 })();

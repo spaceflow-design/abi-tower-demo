@@ -1,6 +1,6 @@
 /* ==========================================================================
    ABI Tower — multi-page website (built on Option A "Cloud / Aurora")
-   Loaded after ../option-a/style.css — adds page shell + subpage components
+   Loaded after base.css (frozen copy of option-a/style.css) — adds page shell + subpage components
    ========================================================================== */
 
 /* ---------- header: 6 pages ---------- */
@@ -330,7 +330,7 @@
   .subnav a { padding: 7px 12px; font-size: 12.5px; }
 }
 
-/* Mobile: dvh instead of vh (visible viewport) — see option-a/style.css */
+/* Mobile: dvh instead of vh (visible viewport) — see base.css */
 @supports (height: 1dvh) {
   @media (max-width: 720px) {
     .phero { height: 74dvh; }
