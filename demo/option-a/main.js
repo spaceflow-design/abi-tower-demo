@@ -95,7 +95,7 @@
   navLinks.forEach(a => {
     a.addEventListener("click", () => hdr.classList.remove("nav-open"));
     a.addEventListener("mouseenter", () => {
-      if (ABI.reduceMotion || window.innerWidth <= 1180) return;
+      if (ABI.reduceMotion || window.innerWidth <= 1280) return;
       a.style.minWidth = a.offsetWidth + "px";
       scramble(a, { duration: 420 });
       setTimeout(() => (a.style.minWidth = ""), 480);
