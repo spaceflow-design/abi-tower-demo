@@ -149,33 +149,34 @@
   const frameBtns = [...document.querySelectorAll(".hero-frames button")];
   const bars = frameBtns.map(b => b.querySelector("s"));
   const setFrame = i => frameBtns.forEach((b, k) => { b.classList.toggle("is-on", k === i); b.setAttribute("aria-selected", k === i); });
-  const F1 = 2.3;          // frame 2 starts here
-  const HOLD = 1.5;        // frame 1 fully shown (rewind target)
-  const END = 3.4;
+  // quick intro (client: the building should be up at ~1.5s, no scrolling needed)
+  const F1 = 1.3;          // frame 2 starts here
+  const HOLD = .9;         // frame 1 fully shown (rewind target)
+  const END = 2.2;
 
   // crosshair draws once
-  gsap.fromTo(".cx-h", { scaleX: 0 }, { scaleX: 1, duration: 1, ease: "expo.inOut" });
-  gsap.fromTo(".cx-v", { scaleY: 0 }, { scaleY: 1, duration: 1, ease: "expo.inOut", delay: .08 });
+  gsap.fromTo(".cx-h", { scaleX: 0 }, { scaleX: 1, duration: .8, ease: "expo.inOut" });
+  gsap.fromTo(".cx-v", { scaleY: 0 }, { scaleY: 1, duration: .8, ease: "expo.inOut", delay: .06 });
 
   const heroTl = gsap.timeline({ paused: true, onUpdate: () => setFrame(heroTl.time() >= F1 - .15 ? 1 : 0) });
   heroTl
     .set(bars, { scaleX: 0 }, 0)
     .set(".hero-f2", { autoAlpha: 0 }, 0)
-    .fromTo(".hero-orb", { scale: .55, opacity: 0 }, { scale: 1, opacity: 1, duration: 1, ease: "expo.out" }, 0)
-    .fromTo(".cx-c", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: .4, ease: "back.out(2)" }, .15)
-    .call(() => scramble(eyebrow, { duration: 600, glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#" }), null, .1)
+    .fromTo(".hero-orb", { scale: .55, opacity: 0 }, { scale: 1, opacity: 1, duration: .7, ease: "expo.out" }, 0)
+    .fromTo(".cx-c", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: .3, ease: "back.out(2)" }, .1)
+    .call(() => scramble(eyebrow, { duration: 450, glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#" }), null, .05)
     .fromTo(chars, { opacity: 0, filter: "blur(12px)", yPercent: 45 },
-      { opacity: 1, filter: "blur(0px)", yPercent: 0, duration: .6, ease: "power3.out", stagger: .014 }, .2)
+      { opacity: 1, filter: "blur(0px)", yPercent: 0, duration: .45, ease: "power3.out", stagger: .008 }, .1)
     .to(bars[0], { scaleX: 1, duration: F1, ease: "none" }, 0)
     // frame 1 → 2
-    .to(chars, { opacity: 0, filter: "blur(10px)", yPercent: -35, duration: .45, ease: "power2.in", stagger: .005 }, F1 - .55)
-    .to(eyebrow, { opacity: 0, duration: .35 }, F1 - .55)
-    .to(".hero-orb", { scale: 1.9, opacity: 0, duration: .7, ease: "power2.in" }, F1 - .55)
-    .to(".cx-c", { scale: 0, opacity: 0, duration: .3 }, F1 - .4)
-    .set(".hero-f2", { autoAlpha: 1 }, F1 - .2)
+    .to(chars, { opacity: 0, filter: "blur(10px)", yPercent: -35, duration: .35, ease: "power2.in", stagger: .004 }, 1)
+    .to(eyebrow, { opacity: 0, duration: .3 }, 1)
+    .to(".hero-orb", { scale: 1.9, opacity: 0, duration: .5, ease: "power2.in" }, 1)
+    .to(".cx-c", { scale: 0, opacity: 0, duration: .25 }, 1.05)
+    .set(".hero-f2", { autoAlpha: 1 }, F1 - .15)
     .fromTo(".hero-tower", { yPercent: 26, opacity: 0, filter: "brightness(2.2) blur(8px)" },
-      { yPercent: 0, opacity: 1, filter: "brightness(1) blur(0px)", duration: 1.1, ease: "expo.out" }, F1 - .2)
-    .fromTo(".hero-halo", { opacity: 0, scale: .5 }, { opacity: 1, scale: 1, duration: 1, ease: "expo.out" }, F1 - .2)
+      { yPercent: 0, opacity: 1, filter: "brightness(1) blur(0px)", duration: .9, ease: "expo.out" }, F1 - .15)
+    .fromTo(".hero-halo", { opacity: 0, scale: .5 }, { opacity: 1, scale: 1, duration: .9, ease: "expo.out" }, F1 - .15)
     .to(bars[1], { scaleX: 1, duration: END - F1, ease: "none" }, F1);
 
   // forward = towards the tower, back = rewind to the title frame
@@ -191,7 +192,7 @@
       rewind = heroTl.tweenTo(HOLD, { duration: t > HOLD ? Math.max(.4, (t - HOLD) * .55) : HOLD - t, ease: t > HOLD ? "power1.inOut" : "none" });
     }
   }
-  gsap.delayedCall(.15, () => heroTl.play());
+  gsap.delayedCall(.05, () => heroTl.play());
   frameBtns.forEach((b, i) => b.addEventListener("click", () => heroTo(i ? 1 : -1)));
   ScrollTrigger.create({
     trigger: ".hero", start: "top top", end: "bottom top",
