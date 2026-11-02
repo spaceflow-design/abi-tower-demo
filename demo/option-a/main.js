@@ -104,11 +104,22 @@
   hdr.querySelectorAll(".hdr-lang button").forEach(b => b.addEventListener("click", () => {
     if (b.dataset.lang === "en") toast("Phiên bản tiếng Anh (EN) sẽ được bổ sung ở giai đoạn build");
   }));
-  // end: "max" keeps the state right after a reload / jump in the middle of the page
-  ScrollTrigger.create({ trigger: ".intro", start: "top 80px", end: "max", onToggle: s => hdr.classList.toggle("is-solid", s.isActive) });
-  // quick-contact dock appears once the hero has scrolled away
+  // header pill turns solid once the intro reaches it; the quick-contact dock shows after the hero
+  // and steps aside at the footer (which has the same contact buttons). Read live positions on every
+  // scroll so reloads, anchor jumps and the very bottom of the page all get the right state.
   const dock = document.querySelector(".dock");
-  ScrollTrigger.create({ trigger: ".intro", start: "top 60%", end: "max", onToggle: s => dock.classList.toggle("is-on", s.isActive) });
+  const introEl = document.querySelector(".intro"), ftrEl = document.querySelector(".ftr");
+  const syncChrome = () => {
+    const vh = window.innerHeight, introTop = introEl.getBoundingClientRect().top, ftrTop = ftrEl.getBoundingClientRect().top;
+    hdr.classList.toggle("is-solid", introTop <= 80);
+    dock.classList.toggle("is-on", introTop <= vh * .6 && ftrTop > vh * .9);
+  };
+  window.addEventListener("scroll", syncChrome, { passive: true });
+  window.addEventListener("resize", syncChrome);
+  ABI.lenis && ABI.lenis.on("scroll", syncChrome);
+  ScrollTrigger.addEventListener("refresh", syncChrome);
+  ScrollTrigger.addEventListener("scrollEnd", syncChrome);
+  syncChrome();
 
   /* ------------------------------------------------------------------
      HERO — 2-frame motion, plays once on load (ref: IFC/OSI hero video, title-card + tech orb refs)
