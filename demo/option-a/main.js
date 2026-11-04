@@ -13,7 +13,7 @@
   const pts = a => a.map(p => p.join(",")).join(" ");
 
   /* ------------------------------------------------------------------
-     SMALL UI HELPERS — toast, demo links, text scramble
+     SMALL UI HELPERS — toast, demo links
   ------------------------------------------------------------------ */
   const toastEl = $("toast");
   let toastT;
@@ -24,26 +24,6 @@
     toastT = setTimeout(() => toastEl.classList.remove("is-on"), 2600);
   };
   document.querySelectorAll("[data-demo]").forEach(a => a.addEventListener("click", e => { e.preventDefault(); toast(a.dataset.demo); }));
-
-  // "decode" effect: letters resolve left → right out of random glyphs
-  function scramble(node, { duration = 520, glyphs = "abcdefghijklmnopqrstuvwxyz0123456789" } = {}) {
-    const final = node.dataset.text || (node.dataset.text = node.textContent);
-    cancelAnimationFrame(node._raf);
-    const t0 = performance.now(), n = final.length;
-    const step = now => {
-      const p = Math.min(1, (now - t0) / duration);
-      const shown = Math.floor(p * n);
-      let html = "";
-      for (let i = 0; i < n; i++) {
-        const c = final[i];
-        html += i < shown || c === " " || c === "·" ? c : `<span class="sc">${glyphs[(Math.random() * glyphs.length) | 0]}</span>`;
-      }
-      node.innerHTML = html;
-      if (p < 1) node._raf = requestAnimationFrame(step);
-      else node.textContent = final;
-    };
-    node._raf = requestAnimationFrame(step);
-  }
 
   /* ------------------------------------------------------------------
      BRAND LINE PATTERN — modules from the logo (bar + diagonal stroke)
@@ -84,7 +64,7 @@
   });
 
   /* ------------------------------------------------------------------
-     HEADER — white over the navy hero, glass pill after; nav scramble on hover
+     HEADER — white over the navy hero, glass pill after; letters roll up on hover (ref: IFC Hanoi)
   ------------------------------------------------------------------ */
   const hdr = $("hdr");
   document.querySelector(".hdr-burger").addEventListener("click", e => {
@@ -94,12 +74,13 @@
   const navLinks = [...hdr.querySelectorAll(".hdr-nav a")];
   navLinks.forEach(a => {
     a.addEventListener("click", () => hdr.classList.remove("nav-open"));
-    a.addEventListener("mouseenter", () => {
-      if (ABI.reduceMotion || window.innerWidth <= 1280) return;
-      a.style.minWidth = a.offsetWidth + "px";
-      scramble(a, { duration: 420 });
-      setTimeout(() => (a.style.minWidth = ""), 480);
-    });
+    // each letter sits in a mask with a copy below it; CSS slides the column up with a small stagger
+    const text = a.textContent.trim().normalize("NFC");
+    a.setAttribute("aria-label", text);
+    a.innerHTML = `<span class="roll" aria-hidden="true">${Array.from(text).map((c, i) => {
+      const ch = c === " " ? "&nbsp;" : c;
+      return `<span class="lm"><span class="lc" style="--i:${i}"><span>${ch}</span><span>${ch}</span></span></span>`;
+    }).join("")}</span>`;
   });
   hdr.querySelectorAll(".hdr-lang button").forEach(b => b.addEventListener("click", () => {
     if (b.dataset.lang === "en") toast("Phiên bản tiếng Anh (EN) sẽ được bổ sung ở giai đoạn build");
@@ -127,7 +108,6 @@
      Frame 2: the tower rises with the LED scan.
      Scrolling back up into the hero rewinds to frame 1; scrolling down plays frame 2 again.
   ------------------------------------------------------------------ */
-  const eyebrow = document.querySelector(".hero-eyebrow");
   const chars = [];
   document.querySelectorAll(".hero-title [data-chars]").forEach(line => {
     const words = line.textContent.trim().normalize("NFC").split(/\s+/);
@@ -164,13 +144,11 @@
     .set(".hero-f2", { autoAlpha: 0 }, 0)
     .fromTo(".hero-orb", { scale: .55, opacity: 0 }, { scale: 1, opacity: 1, duration: .7, ease: "expo.out" }, 0)
     .fromTo(".cx-c", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: .3, ease: "back.out(2)" }, .1)
-    .call(() => scramble(eyebrow, { duration: 450, glyphs: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#" }), null, .05)
     .fromTo(chars, { opacity: 0, filter: "blur(12px)", yPercent: 45 },
       { opacity: 1, filter: "blur(0px)", yPercent: 0, duration: .45, ease: "power3.out", stagger: .008 }, .1)
     .to(bars[0], { scaleX: 1, duration: F1, ease: "none" }, 0)
     // frame 1 → 2
     .to(chars, { opacity: 0, filter: "blur(10px)", yPercent: -35, duration: .35, ease: "power2.in", stagger: .004 }, 1)
-    .to(eyebrow, { opacity: 0, duration: .3 }, 1)
     .to(".hero-orb", { scale: 1.9, opacity: 0, duration: .5, ease: "power2.in" }, 1)
     .to(".cx-c", { scale: 0, opacity: 0, duration: .25 }, 1.05)
     .set(".hero-f2", { autoAlpha: 1 }, F1 - .15)
@@ -233,11 +211,11 @@
   pois.forEach(p => (poiByName[p.dataset.name] = p));
 
   const CATS = [
-    { name: "Hạ tầng giao thông", places: ["Ga Phú Diễn", "Ga Cầu Diễn", "Cầu Nhật Tân"] },
-    { name: "Cơ quan hành chính", places: ["Đại sứ quán Hàn Quốc", "Khu đô thị Ngoại Giao Đoàn", "Bộ Công An", "Ủy ban Nhân dân TP. Hà Nội"] },
-    { name: "Khách sạn & Nhà hàng", places: ["Fraser Residence Hanoi", "InterContinental Hanoi Westlake", "Sheraton Hanoi", "Nhà hàng Đình Làng", "BBQ Chicken", "Crumbs Artelier", "Nhà hàng chay Mộc Nhiên", "Nhà hàng Bò Tơ Quán Mộc", "Quán nhậu Tự Do", "Nhà hàng Fu Rong Hua", "Nhà hàng Maison Sen Buffet"] },
+    { name: "Hạ tầng giao thông", places: ["Ga Metro (tuyến số 2)", "Ga Metro (tuyến số 4)", "Ga Phú Diễn", "Ga Cầu Diễn", "Cầu Nhật Tân"] },
+    { name: "Cơ quan hành chính", places: ["Đại sứ quán Hàn Quốc", "Đại sứ quán Nhật", "Đại sứ quán Úc", "Khu đô thị Ngoại Giao Đoàn", "Bộ Công An", "Ủy ban Nhân dân TP. Hà Nội"] },
+    { name: "Khách sạn & Nhà hàng", places: ["Fraser Residence Hanoi", "InterContinental Hanoi Westlake", "Sheraton Hanoi", "Shilla Monogram", "Nhà hàng Đình Làng", "BBQ Chicken", "Crumbs Artelier", "Nhà hàng chay Mộc Nhiên", "Nhà hàng Bò Tơ Quán Mộc", "Quán nhậu Tự Do", "Nhà hàng Fu Rong Hua", "Nhà hàng Maison Sen Buffet"] },
     { name: "Mua sắm & Giải trí", places: ["Lotte Mall Tây Hồ", "Lotte Center Hà Nội", "Indochina Plaza Hanoi (IPH)", "MM Mega Market", "K-Mart", "Bảo tàng Thiên nhiên Việt Nam", "Bảo tàng Dân tộc học Việt Nam", "Bảo tàng Hồ Chí Minh", "Hồ Tây", "Hồ Hoàn Kiếm"] },
-    { name: "Tiện ích lân cận", places: ["Trung tâm Samsung R&D", "Khu phức hợp Oriental Square", "IFC Hanoi", "Khu đô thị Ciputra", "Phòng khám Đa khoa Mirai", "Bệnh viện E", "Bệnh viện Mắt Ánh Sáng", "Trường Quốc tế Liên Hợp Quốc Hà Nội (UNIS)"] }
+    { name: "Tiện ích lân cận", places: ["Trung tâm Samsung R&D", "Khu đô thị Ciputra", "Phòng khám Đa khoa Mirai", "Bệnh viện E", "Bệnh viện Mắt Ánh Sáng", "Trường Quốc tế Liên Hợp Quốc Hà Nội (UNIS)"] }
   ];
   const catBox = $("locCats");
   const catEls = CATS.map((c, i) => {
@@ -293,15 +271,6 @@
     p.addEventListener("click", () => hot(p, !p.classList.contains("is-hot")));
   });
 
-  // legend of coloured traffic axes
-  const legend = $("mapLegend");
-  (window.ABI_MAP2_ROADS || []).forEach(r => {
-    const li = document.createElement("li");
-    li.style.setProperty("--c", r.color);
-    li.innerHTML = `<i></i>${r.name}`;
-    legend.appendChild(li);
-  });
-
   // draw-on sequence
   if (mapSvg) {
     const rings = q(".m-rings circle, .m-rings path"), roads = q(".m-road path");
@@ -310,7 +279,7 @@
     mapTl.from(q(".m-street"), { opacity: 0, duration: .8 })
       .to(rings, { strokeDashoffset: 0, duration: 1.4, ease: "power2.inOut", stagger: .12 }, .1)
       .to(roads, { strokeDashoffset: 0, duration: 1.4, ease: "power2.inOut", stagger: .06 }, .3)
-      .from(q(".m-rlabels, .m-areas, .m-bridge"), { opacity: 0, duration: .6 }, 1.1)
+      .from(q(".m-rlabels, .m-areas, .m-bridge, .m-metro"), { opacity: 0, duration: .6 }, 1.1)
       .from(q(".m-poi .m-dot"), { scale: 0, transformOrigin: "50% 50%", duration: .5, ease: "back.out(2)", stagger: .02 }, 1)
       .from(q(".m-poi .m-glyph, .m-poi .m-lbl"), { opacity: 0, duration: .5 }, 1.5)
       .from(q(".m-pin"), { y: -40, opacity: 0, duration: .9, ease: "bounce.out" }, 1.2);
@@ -327,7 +296,8 @@
   }
   function applyView(animate = true) {
     clampView();
-    gsap.to(stage, { x: view.x, y: view.y, scale: view.s, duration: animate ? .7 : 0, ease: "power3.out" });
+    // force3D:false → the SVG is re-rasterised at the new scale (no blurry bitmap zoom)
+    gsap.to(stage, { x: view.x, y: view.y, scale: view.s, duration: animate ? .7 : 0, ease: "power3.out", force3D: false });
   }
   function resetView() { view.s = 1; view.x = 0; view.y = 0; applyView(); }
   function zoomAt(s, fx, fy) {
@@ -514,14 +484,7 @@
     lblEls[g.id] = t; lblGroups[g.id] = lg;
   });
 
-  // panel
-  const chips = $("fpChips");
-  STACK.groups.forEach(g => {
-    const b = document.createElement("button");
-    b.type = "button"; b.setAttribute("role", "tab"); b.textContent = g.tag; b.dataset.g = g.id;
-    b.addEventListener("click", () => select(g.id));
-    chips.appendChild(b);
-  });
+  // panel (client layout 3/11: no floor chips — floors are picked on the isometric tower)
   let active = null;
   function select(id) {
     const g = STACK.groups.find(x => x.id === id);
@@ -533,14 +496,12 @@
     // explode: everything above the chosen floors lifts so its top slab is revealed
     const idx = order.indexOf(ge);
     order.forEach((o, i) => gsap.to([o, lblGroups[o.dataset.g]], { y: i > idx ? -34 : 0, duration: .7, ease: "power3.inOut" }));
-    chips.querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", b.dataset.g === id));
 
-    const panel = [$("fpTag"), $("fpNla"), $("fpTitle"), $("fpDesc"), $("fpMedia"), $("fpLegend")];
+    const panel = [$("fpTag"), $("fpNla"), $("fpDesc"), $("fpMedia"), $("fpLegend")];
     gsap.fromTo(panel, { y: 12, opacity: 0 }, { y: 0, opacity: 1, stagger: .04, duration: .5, ease: "power2.out" });
     $("fpTag").textContent = g.tag;
-    $("fpTitle").textContent = g.title;
     $("fpNla").textContent = g.nla ? "Diện tích cho thuê: " + g.nla : "";
-    $("fpDesc").textContent = g.desc || "";
+    $("fpDesc").textContent = g.desc || g.title;   // floors without a description show their title
     const media = $("fpMedia");
     media.classList.toggle("is-photo", !g.plan);
     media.innerHTML = g.plan
