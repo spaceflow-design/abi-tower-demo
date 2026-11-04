@@ -130,7 +130,6 @@ ol, ul { list-style: none; }
   content: ""; position: absolute; left: 14px; right: 14px; bottom: 5px; height: 1.5px; border-radius: 2px;
   background: linear-gradient(90deg, var(--cyan), var(--blue)); transform: scaleX(0); transform-origin: left; transition: transform .45s var(--ease);
 }
-.hdr-nav a:hover { background: rgba(33,64,154,.08); }
 .hdr-nav a:hover::after, .hdr-nav a.is-current::after { transform: scaleX(1); }
 /* letter roll (ref: IFC Hanoi): each letter is a 2-high column inside a 1-line mask */
 .hdr-nav .roll { display: inline-flex; vertical-align: top; }
@@ -139,7 +138,6 @@ ol, ul { list-style: none; }
 .hdr-nav .lc > span { display: block; height: 1.6em; }
 .hdr-nav a:hover .lc, .hdr-nav a:focus-visible .lc { transform: translateY(-1.6em); }
 .hdr.on-dark:not(.is-solid) .hdr-nav a { color: #fff; }
-.hdr.on-dark:not(.is-solid) .hdr-nav a:hover { background: rgba(255,255,255,.14); }
 .hdr-tools { display: flex; align-items: center; gap: 10px; flex: none; }
 /* last item in the header row (after the CTA / burger) */
 .hdr-brochure {
