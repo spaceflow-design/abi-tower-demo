@@ -257,9 +257,10 @@
   };
   ABI.legendHTML = leg => (leg || []).map(([k, c]) => `<li><i style="--c:${c}"></i>${k}</li>`).join("");
 
-  // lazy images that change a block's height move every trigger below them → re-measure once they settle
+  // anything that changes a block's height (lazy images, accordions opening) moves every trigger below it
+  // → re-measure once the layout has settled (debounced; pass the transition length)
   let refreshT;
-  const refreshSoon = () => { clearTimeout(refreshT); refreshT = setTimeout(() => ScrollTrigger.refresh(), 250); };
-  document.querySelectorAll('img[loading="lazy"]').forEach(img => img.complete || img.addEventListener("load", refreshSoon, { once: true }));
+  ABI.refreshSoon = (ms = 250) => { clearTimeout(refreshT); refreshT = setTimeout(() => ScrollTrigger.refresh(), ms); };
+  document.querySelectorAll('img[loading="lazy"]').forEach(img => img.complete || img.addEventListener("load", () => ABI.refreshSoon(), { once: true }));
   window.addEventListener("load", () => ScrollTrigger.refresh());
 })();

@@ -92,10 +92,14 @@
     });
     const stack = ABI.mountStacking(iso, {
       groups: VG,
-      onSelect: g => Object.entries(items).forEach(([id, li]) => {
-        li.classList.toggle("is-on", id === g.id);
-        li.querySelector(".vg-btn").setAttribute("aria-expanded", id === g.id);
-      })
+      onSelect: g => {
+        Object.entries(items).forEach(([id, li]) => {
+          li.classList.toggle("is-on", id === g.id);
+          li.querySelector(".vg-btn").setAttribute("aria-expanded", id === g.id);
+        });
+        // the opened row changes the list's height → the floor-plate triggers below must be re-measured
+        ABI.refreshSoon(520);
+      }
     });
     stack.select("f10-13");
     ABI.mountStats($("stackStats"), ABI.stack.summary);
@@ -123,8 +127,13 @@
 
   /* ---------- HỆ TIỆN ÍCH CHUNG ---------- */
   const panels = gsap.utils.toArray(".am-panel");
+  const stackedPanels = window.matchMedia("(max-width: 720px)");   // phones: panels open in height
   panels.forEach(p => {
-    const open = () => panels.forEach(o => o.classList.toggle("is-open", o === p));
+    const open = () => {
+      if (p.classList.contains("is-open")) return;
+      panels.forEach(o => o.classList.toggle("is-open", o === p));
+      stackedPanels.matches && ABI.refreshSoon(760);
+    };
     p.addEventListener("mouseenter", open);
     p.addEventListener("click", open);
     p.addEventListener("focus", open);

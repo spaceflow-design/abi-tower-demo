@@ -161,6 +161,7 @@
     mapSvg.classList.toggle("is-filter", openIdx > -1);
     const match = pois.filter(p => +p.dataset.cat === openIdx + 1);
     pois.forEach(p => p.classList.toggle("is-match", match.includes(p)));
+    ABI.refreshSoon(520);   // the place list changes the section's height
     if (openIdx > -1) {
       resetView();
       gsap.fromTo(match.map(p => p.querySelector(".m-dot")).filter(Boolean), { scale: .4 }, { scale: 1, transformOrigin: "50% 50%", duration: .6, ease: "back.out(2.4)", stagger: .04 });
