@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ABI Tower — Trung tâm đổi mới sáng tạo tương lai (Demo A)</title>
+<title>ABI Tower — Trung tâm đổi mới sáng tạo tương lai</title>
 <meta name="description" content="Biểu tượng văn phòng hạng A mang đậm tinh thần công nghệ tại khu đô thị Starlake.">
 <link rel="icon" href="../assets/svg/logo-color.svg">
 <link rel="stylesheet" href="../assets/css/fonts.css">
@@ -13,17 +13,17 @@
 
 <!-- ============ HEADER ============ -->
 <header class="hdr on-dark" id="hdr">
-  <a class="hdr-logo" href="#top" aria-label="ABI Tower">
+  <a class="hdr-logo" href="index.html" aria-label="ABI Tower — Trang chủ">
     <img class="logo-c" src="../assets/svg/logo-color.svg" alt="ABI Tower">
     <img class="logo-w" src="../assets/svg/logo-white.svg" alt="" aria-hidden="true">
   </a>
   <nav class="hdr-nav" aria-label="Điều hướng chính">
-    <a href="#top">Trang chủ</a>
-    <a href="#gioi-thieu">Về chúng tôi</a>
-    <a href="#cam-hung">Thiết kế thông minh</a>
-    <a href="#van-phong">Văn phòng</a>
-    <a href="#tien-ich">Hệ tiện ích chung</a>
-    <a href="#lien-he">Liên hệ cho thuê</a>
+    <a href="index.html">Trang chủ</a>
+    <a href="ve-chung-toi.html">Về chúng tôi</a>
+    <a href="thiet-ke-thong-minh.html">Thiết kế thông minh</a>
+    <a href="van-phong.html">Văn phòng</a>
+    <a href="tien-ich.html">Hệ tiện ích chung</a>
+    <a href="lien-he.html">Liên hệ cho thuê</a>
   </nav>
   <div class="hdr-tools">
     <div class="hdr-lang" role="group" aria-label="Ngôn ngữ">
@@ -78,7 +78,7 @@
         <div class="ov-info">
           <p class="ov-k">Kiến trúc tổng thể</p>
           <ul>
-            <li>16 tầng nổi và 4 tầng hầm</li>
+            <li>16 tầng nổi &amp; 2 tầng hầm</li>
             <li>Mặt dựng giật cấp với đèn LED hiện đại</li>
             <li>Kính Low-E giảm hấp thụ nhiệt</li>
           </ul>
@@ -109,7 +109,7 @@
           <ul>
             <li>Thiết kế không cột</li>
             <li>Diện tích sàn ~800 m²</li>
-            <li>Trần cao thông thủy 3m</li>
+            <li>Trần cao thông thủy 2,85 m</li>
             <li>Mặt kính chạm trần tối ưu ánh sáng</li>
             <li>6 thang máy Schindler tốc độ cao</li>
           </ul>
@@ -141,17 +141,25 @@
   </div>
 </section>
 
-<!-- ============ DESIGN INSPIRATION — THE CLOUD (layout from option B) ============ -->
+<!-- ============ DESIGN INSPIRATION — THE CLOUD (text on top, photos below, faint clouds drifting behind) ============ -->
 <section class="cloudsec" id="cam-hung">
-  <div class="cs-gal">
-    <figure class="cg cg1"><img src="../assets/img/cloud-1.webp" alt="Điêu khắc kiến trúc The Cloud" loading="lazy"></figure>
-    <figure class="cg cg2"><img src="../assets/img/cloud-aerial.webp" alt="Toàn cảnh khối đế và cảnh quan" loading="lazy"></figure>
-    <figure class="cg cg3"><img src="../assets/img/cloud-2.webp" alt="Không gian cảnh quan The Cloud" loading="lazy"></figure>
+  <div class="cs-clouds" aria-hidden="true">
+    <svg width="0" height="0" style="position:absolute"><symbol id="cloudShape" viewBox="0 0 220 100"><circle cx="64" cy="62" r="32"/><circle cx="104" cy="44" r="40"/><circle cx="150" cy="56" r="30"/><circle cx="182" cy="72" r="22"/><circle cx="38" cy="76" r="20"/><rect x="30" y="64" width="168" height="34" rx="17"/></symbol></svg>
+    <svg class="cs-cloud" style="--x:-4%;--y:4%;--w:30vw;--o:.95;--b:3px;--d:38s" viewBox="0 0 220 100"><use href="#cloudShape"/></svg>
+    <svg class="cs-cloud" style="--x:66%;--y:-2%;--w:34vw;--o:.85;--b:5px;--d:46s" viewBox="0 0 220 100"><use href="#cloudShape"/></svg>
+    <svg class="cs-cloud" style="--x:36%;--y:14%;--w:20vw;--o:.8;--b:3px;--d:32s" viewBox="0 0 220 100"><use href="#cloudShape"/></svg>
+    <svg class="cs-cloud" style="--x:-8%;--y:70%;--w:30vw;--o:.9;--b:4px;--d:42s" viewBox="0 0 220 100"><use href="#cloudShape"/></svg>
+    <svg class="cs-cloud" style="--x:72%;--y:74%;--w:28vw;--o:.9;--b:4px;--d:36s" viewBox="0 0 220 100"><use href="#cloudShape"/></svg>
   </div>
   <div class="cs-copy">
     <p class="eyebrow"><span class="num">02</span> Cảm hứng thiết kế</p>
     <h2 class="h2">Nghệ thuật kiến trúc<br>“Đám mây”</h2>
     <p class="body">Lấy cảm hứng từ những tầng mây, ABI Tower kiến tạo một không gian nhẹ nhàng, rộng mở và kết nối với thiên nhiên. “Đám mây” cũng là biểu tượng của kỷ nguyên số — nơi công nghệ, sự kết nối cùng hội tụ để định tương lai tại Starlake</p>
+  </div>
+  <div class="cs-gal">
+    <figure class="cg cg1"><img src="../assets/img/cloud-1.webp" alt="Điêu khắc kiến trúc The Cloud" loading="lazy"></figure>
+    <figure class="cg cg2"><img src="../assets/img/cloud-aerial.webp" alt="Toàn cảnh khối đế và cảnh quan" loading="lazy"></figure>
+    <figure class="cg cg3"><img src="../assets/img/cloud-2.webp" alt="Không gian cảnh quan The Cloud" loading="lazy"></figure>
   </div>
 </section>
 
@@ -179,7 +187,7 @@
         <span class="usp-ico" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M6 14 24 6l18 8-18 8z"/><path d="M6 24l18 8 18-8"/><path d="M6 34l18 8 18-8"/></svg></span>
         <span class="call-n">02</span>
         <h3>Mặt bằng linh hoạt</h3>
-        <p>Mặt bằng không cột cùng trần thông thủy 3,5m mang đến sự linh hoạt trong bố trí không gian văn phòng.</p>
+        <p>Mặt bằng không cột cùng trần thông thủy 2.85m mang đến sự linh hoạt trong bố trí không gian văn phòng.</p>
       </article>
       <article class="call c3">
         <span class="usp-ico" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M8 22h26v8a10 10 0 0 1-10 10h-6A10 10 0 0 1 8 30z"/><path d="M34 25h3a5 5 0 0 1 0 10h-4"/><path d="M17 8c-2 3 2 5 0 8M24 8c-2 3 2 5 0 8"/></svg></span>
@@ -263,7 +271,13 @@
       </li>
     </ul>
   </div>
-  <figure class="aw-media"><img src="../assets/img/award-night.webp" alt="ABI Tower nhận giải Best Smart Commercial Development" loading="lazy"></figure>
+  <figure class="aw-media" data-slides>
+    <div class="slides-in">
+      <img src="../assets/img/award-night.webp" alt="ABI Tower nhận giải Best Smart Commercial Development" loading="lazy">
+      <img src="../assets/img/award-ceremony.webp" alt="Đại diện ABI Tower tại lễ trao giải PropertyGuru Vietnam Property Awards 2026" loading="lazy">
+    </div>
+    <div class="slides-dots" aria-hidden="true"></div>
+  </figure>
 </section>
 
 <!-- ============ NEWS ============ -->
@@ -275,11 +289,11 @@
   <div class="news-grid">
     <a class="news-card" href="#" data-demo="Trang chi tiết tin tức sẽ có ở giai đoạn build">
       <figure><img src="../assets/img/ext-up.webp" alt="" loading="lazy"></figure>
-      <h3>Tòa văn phòng hạng A ABI Tower chính thức cất nóc</h3>
+      <h3>Tòa nhà văn phòng thông minh hạng A ABI Tower chính thức cất nóc</h3>
     </a>
     <a class="news-card" href="#" data-demo="Trang chi tiết tin tức sẽ có ở giai đoạn build">
       <figure><img src="../assets/img/garden.webp" alt="" loading="lazy"></figure>
-      <h3>ABI Tower đạt chứng chỉ công trình xanh LEED Gold</h3>
+      <h3>Tòa nhà ABI Tower chính thức đạt chứng chỉ công trình xanh LEED Gold</h3>
     </a>
     <a class="news-card" href="#" data-demo="Trang chi tiết tin tức sẽ có ở giai đoạn build">
       <figure><img src="../assets/img/award-night.webp" alt="" loading="lazy"></figure>
@@ -287,7 +301,7 @@
     </a>
     <a class="news-card" href="#" data-demo="Trang chi tiết tin tức sẽ có ở giai đoạn build">
       <figure><img src="../assets/img/ext-podium.webp" alt="" loading="lazy"></figure>
-      <h3>Cập nhật tiến độ dự án ABI Tower tháng 11/2026</h3>
+      <h3>Cập nhật tiến độ xây dựng dự án ABI Tower - Tháng 11/2026</h3>
     </a>
   </div>
 </section>
@@ -365,12 +379,12 @@
     <nav class="ftr-col" aria-label="Liên kết nhanh">
       <p class="ftr-k">Menu</p>
       <div class="ftr-links">
-        <a href="#top">Trang chủ</a>
-        <a href="#gioi-thieu">Về chúng tôi</a>
-        <a href="#cam-hung">Thiết kế thông minh</a>
-        <a href="#van-phong">Văn phòng</a>
-        <a href="#tien-ich">Hệ tiện ích chung</a>
-        <a href="#lien-he">Liên hệ cho thuê</a>
+        <a href="index.html">Trang chủ</a>
+        <a href="ve-chung-toi.html">Về chúng tôi</a>
+        <a href="thiet-ke-thong-minh.html">Thiết kế thông minh</a>
+        <a href="van-phong.html">Văn phòng</a>
+        <a href="tien-ich.html">Hệ tiện ích chung</a>
+        <a href="lien-he.html">Liên hệ cho thuê</a>
       </div>
     </nav>
     <div class="ftr-col">
@@ -407,6 +421,7 @@
 <script src="../assets/vendor/qrcode.min.js"></script>
 <script src="../assets/js/map2-svg.js"></script>
 <script src="../assets/js/shared.js"></script>
+<script src="common.js"></script>
 <script src="main.js"></script>
 </body>
 </html>

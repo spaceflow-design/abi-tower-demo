@@ -93,18 +93,20 @@ ABI.initSmooth = function () {
     ScrollTrigger.addEventListener("refresh", () => lenis.resize());
     ABI.lenis = lenis;
   }
-  // In-page navigation. Pinned sections sit inside a .pin-spacer, so measure the spacer instead.
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener("click", e => {
-      const id = a.getAttribute("href");
-      const el = id.length > 1 && document.querySelector(id);
-      if (!el) return;
-      e.preventDefault();
-      const box = el.parentElement && el.parentElement.classList.contains("pin-spacer") ? el.parentElement : el;
-      const y = id === "#top" ? 0 : box.getBoundingClientRect().top + window.scrollY;
-      if (lenis) lenis.scrollTo(y);
-      else window.scrollTo({ top: y, behavior: ABI.reduceMotion ? "auto" : "smooth" });
-    });
+  // In-page navigation (delegated, so links added later work too). Pinned sections sit inside a
+  // .pin-spacer, so measure the spacer instead; the target's scroll-margin-top keeps it clear of the header.
+  document.addEventListener("click", e => {
+    const a = e.target.closest && e.target.closest('a[href^="#"]');
+    if (!a || e.defaultPrevented) return;
+    const id = a.getAttribute("href");
+    const el = id.length > 1 && document.querySelector(id);
+    if (!el) return;
+    e.preventDefault();
+    const box = el.parentElement && el.parentElement.classList.contains("pin-spacer") ? el.parentElement : el;
+    const margin = parseFloat(getComputedStyle(el).scrollMarginTop) || 0;
+    const y = id === "#top" ? 0 : box.getBoundingClientRect().top + window.scrollY - margin;
+    if (lenis) lenis.scrollTo(y);
+    else window.scrollTo({ top: y, behavior: ABI.reduceMotion ? "auto" : "smooth" });
   });
   return lenis;
 };

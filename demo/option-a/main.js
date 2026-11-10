@@ -1,106 +1,16 @@
-/* ABI Tower — Homepage demo · OPTION A (revision after client feedback 2026-10-30) */
+/* ABI Tower — Homepage · OPTION A (client feedback rounds 30/10, 3/11, 6/11).
+   Shared chrome (header, dock, toast, pattern, leasing form, stacking builder) lives in common.js. */
 (() => {
-  ABI.initSmooth();
   const mm = gsap.matchMedia();
-  const NS = "http://www.w3.org/2000/svg";
   const $ = id => document.getElementById(id);
-  const el = (tag, attrs, parent) => {
-    const n = document.createElementNS(NS, tag);
-    for (const k in attrs) n.setAttribute(k, attrs[k]);
-    parent && parent.appendChild(n);
-    return n;
-  };
-  const pts = a => a.map(p => p.join(",")).join(" ");
+  const el = ABI.svgEl, pts = ABI.pts;
 
-  /* ------------------------------------------------------------------
-     SMALL UI HELPERS — toast, demo links
-  ------------------------------------------------------------------ */
-  const toastEl = $("toast");
-  let toastT;
-  const toast = msg => {
-    toastEl.textContent = msg;
-    toastEl.classList.add("is-on");
-    clearTimeout(toastT);
-    toastT = setTimeout(() => toastEl.classList.remove("is-on"), 2600);
-  };
-  document.querySelectorAll("[data-demo]").forEach(a => a.addEventListener("click", e => { e.preventDefault(); toast(a.dataset.demo); }));
-
-  /* ------------------------------------------------------------------
-     BRAND LINE PATTERN — modules from the logo (bar + diagonal stroke)
-  ------------------------------------------------------------------ */
-  function buildPattern(svg, w, h, shift = 0) {
-    const W = 135, H = 142, SHIFT = 27;
-    if (!w) { const b = svg.getBoundingClientRect(); w = b.width; h = b.height; }
-    const cols = Math.ceil(w / W) + 3, rows = Math.ceil(h / H) + 2;
-    if (!svg.getAttribute("viewBox")) svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
-    const fills = [];
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const ox = c * W - r * SHIFT + (rows * SHIFT) % W - W + shift, oy = r * H - 40;
-        el("polygon", { class: "pt-l", points: pts([[ox + 86, oy - 7], [ox + 140, oy - 101], [ox + 166, oy - 54], [ox + 113, oy + 39]]) }, svg);
-        const bar = [[ox, oy], [ox + 80, oy], [ox + 103, oy + 39], [ox + 23, oy + 39]];
-        el("polygon", { class: "pt-l", points: pts(bar) }, svg);
-        if ((r * 7 + c * 3) % 5 === 0 || (r + c) % 7 === 0) fills.push(el("polygon", { class: "pt-f", points: pts(bar) }, svg));
-      }
-    }
-    return fills;
-  }
-  document.querySelectorAll(".pattern").forEach(svg => {
-    const fills = buildPattern(svg);
-    if (svg.classList.contains("hero-pattern")) {
-      gsap.to(fills, { opacity: () => gsap.utils.random([.1, .2, .32]), duration: 1.6, stagger: { each: .03, from: "random", repeat: -1, yoyo: true, repeatDelay: 1.2 }, ease: "sine.inOut" });
-    } else {
-      gsap.to(fills, {
-        opacity: () => gsap.utils.random([.3, .55, .85]), stagger: { each: .02, from: "random" }, ease: "none",
-        scrollTrigger: { trigger: svg.parentElement, start: "top 85%", end: "bottom 40%", scrub: true }
-      });
-    }
-  });
-  // intro side ornaments: a small patch of the same pattern
+  // intro side ornaments: a small patch of the brand pattern
   document.querySelectorAll(".intro-deco").forEach((svg, i) => {
-    const fills = buildPattern(svg, 220, 300, i * 40);
+    const fills = ABI.buildPattern(svg, 220, 300, i * 40);
     fills.forEach((f, k) => f.setAttribute("class", k % 2 ? "pt-s" : "pt-f"));
     gsap.from(svg.querySelectorAll("polygon"), { opacity: 0, duration: .6, stagger: { each: .01, from: "random" }, scrollTrigger: { trigger: ".intro", start: "top 75%" } });
   });
-
-  /* ------------------------------------------------------------------
-     HEADER — white over the navy hero, glass pill after; letters roll up on hover (ref: IFC Hanoi)
-  ------------------------------------------------------------------ */
-  const hdr = $("hdr");
-  document.querySelector(".hdr-burger").addEventListener("click", e => {
-    const open = hdr.classList.toggle("nav-open");
-    e.currentTarget.setAttribute("aria-expanded", open);
-  });
-  const navLinks = [...hdr.querySelectorAll(".hdr-nav a")];
-  navLinks.forEach(a => {
-    a.addEventListener("click", () => hdr.classList.remove("nav-open"));
-    // each letter sits in a mask with a copy below it; CSS slides the column up with a small stagger
-    const text = a.textContent.trim().normalize("NFC");
-    a.setAttribute("aria-label", text);
-    a.innerHTML = `<span class="roll" aria-hidden="true">${Array.from(text).map((c, i) => {
-      const ch = c === " " ? "&nbsp;" : c;
-      return `<span class="lm"><span class="lc" style="--i:${i}"><span>${ch}</span><span>${ch}</span></span></span>`;
-    }).join("")}</span>`;
-  });
-  hdr.querySelectorAll(".hdr-lang button").forEach(b => b.addEventListener("click", () => {
-    if (b.dataset.lang === "en") toast("Phiên bản tiếng Anh (EN) sẽ được bổ sung ở giai đoạn build");
-  }));
-  // header pill turns solid once the intro reaches it; the quick-contact dock shows after the hero
-  // and steps aside at the footer (which has the same contact buttons). Read live positions on every
-  // scroll so reloads, anchor jumps and the very bottom of the page all get the right state.
-  const dock = document.querySelector(".dock");
-  const introEl = document.querySelector(".intro"), ftrEl = document.querySelector(".ftr");
-  const syncChrome = () => {
-    const vh = window.innerHeight, introTop = introEl.getBoundingClientRect().top, ftrTop = ftrEl.getBoundingClientRect().top;
-    hdr.classList.toggle("is-solid", introTop <= 80);
-    dock.classList.toggle("is-on", introTop <= vh * .6 && ftrTop > vh * .9);
-  };
-  window.addEventListener("scroll", syncChrome, { passive: true });
-  window.addEventListener("resize", syncChrome);
-  ABI.lenis && ABI.lenis.on("scroll", syncChrome);
-  ScrollTrigger.addEventListener("refresh", syncChrome);
-  ScrollTrigger.addEventListener("scrollEnd", syncChrome);
-  syncChrome();
 
   /* ------------------------------------------------------------------
      HERO — 2-frame motion, plays once on load (ref: IFC/OSI hero video, title-card + tech orb refs)
@@ -229,9 +139,12 @@
       const p = poiByName[name];
       if (p) {
         p._li = li;
+        li.tabIndex = 0;
+        li.setAttribute("role", "button");
         li.addEventListener("mouseenter", () => hot(p, true));
         li.addEventListener("mouseleave", () => hot(p, false));
-        li.addEventListener("click", () => hot(p, true));
+        li.addEventListener("click", () => pick(p));
+        li.addEventListener("keydown", e => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), pick(p)));
       }
       ul.appendChild(li);
     });
@@ -242,6 +155,7 @@
   let openIdx = -1;
   function openCat(i) {
     openIdx = openIdx === i ? -1 : i;
+    pick(null);
     catEls.forEach((w, k) => { w.classList.toggle("is-open", k === openIdx); w.querySelector(".cat-btn").setAttribute("aria-expanded", k === openIdx); });
     if (!mapSvg) return;
     mapSvg.classList.toggle("is-filter", openIdx > -1);
@@ -252,23 +166,44 @@
       gsap.fromTo(match.map(p => p.querySelector(".m-dot")).filter(Boolean), { scale: .4 }, { scale: 1, transformOrigin: "50% 50%", duration: .6, ease: "back.out(2.4)", stagger: .04 });
     }
   }
+  // tooltip sits above the POI's dot (map coords → screen via the SVG's CTM, so zoom/pan are included)
+  function placeTip(p) {
+    const m = mapSvg.getScreenCTM(), t = p.transform.baseVal.consolidate();
+    if (!m || !t) return;
+    const pt = mapSvg.createSVGPoint(); pt.x = t.matrix.e; pt.y = t.matrix.f;
+    const sp = pt.matrixTransform(m), cr = card.getBoundingClientRect();
+    const k = p.classList.contains("is-sel") ? 1.5 : 1.25;
+    tip.textContent = p.dataset.name;
+    tip.style.left = sp.x - cr.left + "px";
+    tip.style.top = sp.y - cr.top - 15 * m.a * k - 4 + "px";
+  }
+  // client 6/11: a picked place must stand out clearly on the map → sticky selection (bigger red marker,
+  // pulsing ring, raised above the others) that stays until another place / category is picked
+  let sel = null;
+  function pick(p) {
+    if (sel === p) p = null;
+    if (sel) { sel.classList.remove("is-sel"); sel._li && sel._li.classList.remove("is-sel"); }
+    sel = p;
+    mapSvg && mapSvg.classList.toggle("has-sel", !!p);
+    if (p) {
+      p.classList.add("is-sel");
+      p._li && p._li.classList.add("is-sel");
+      p.parentNode.appendChild(p);              // draw on top of its neighbours
+    }
+    hot(p, !!p);
+  }
   function hot(p, on) {
     pois.forEach(o => { if (o !== p) { o.classList.remove("is-hot"); o._li && o._li.classList.remove("is-hot"); } });
-    p.classList.toggle("is-hot", on);
-    p._li && p._li.classList.toggle("is-hot", on);
-    if (on) {
-      const r = (p.querySelector(".m-dot") || p).getBoundingClientRect();
-      const cr = card.getBoundingClientRect();
-      tip.textContent = p.dataset.name;
-      tip.style.left = r.left - cr.left + r.width / 2 + "px";
-      tip.style.top = r.top - cr.top + "px";
-    }
-    tip.classList.toggle("is-on", on);
+    if (p) { p.classList.toggle("is-hot", on); p._li && p._li.classList.toggle("is-hot", on); }
+    // leaving a hovered place falls back to the picked one
+    const show = on ? p : sel;
+    if (show) placeTip(show);
+    tip.classList.toggle("is-on", !!show);
   }
   pois.forEach(p => {
     p.addEventListener("mouseenter", () => hot(p, true));
     p.addEventListener("mouseleave", () => hot(p, false));
-    p.addEventListener("click", () => hot(p, !p.classList.contains("is-hot")));
+    p.addEventListener("click", () => pick(p));
   });
 
   // draw-on sequence
@@ -297,7 +232,7 @@
   function applyView(animate = true) {
     clampView();
     // force3D:false → the SVG is re-rasterised at the new scale (no blurry bitmap zoom)
-    gsap.to(stage, { x: view.x, y: view.y, scale: view.s, duration: animate ? .7 : 0, ease: "power3.out", force3D: false });
+    gsap.to(stage, { x: view.x, y: view.y, scale: view.s, duration: animate ? .7 : 0, ease: "power3.out", force3D: false, onUpdate: () => sel && placeTip(sel) });
   }
   function resetView() { view.s = 1; view.x = 0; view.y = 0; applyView(); }
   function zoomAt(s, fx, fy) {
@@ -340,6 +275,10 @@
       .fromTo(f.querySelector("img"), { scale: 1.25 }, { scale: 1, duration: 1.2, ease: "none" }, i * .55);
   });
   gsap.from(".cs-copy > *", { y: 34, opacity: 0, stagger: .1, duration: 1, ease: "expo.out", scrollTrigger: { trigger: ".cs-copy", start: "top 90%" } });
+  // faint clouds drifting behind (client 6/11: "đám mây chìm"); CSS drifts them sideways, scroll adds depth
+  gsap.utils.toArray(".cs-cloud").forEach((c, i) => gsap.fromTo(c, { yPercent: 18 + i * 6 }, {
+    yPercent: -18 - i * 6, ease: "none", scrollTrigger: { trigger: ".cloudsec", start: "top bottom", end: "bottom top", scrub: true }
+  }));
 
   /* ------------------------------------------------------------------
      GRADE A — glowing rings ("viền") wrap the tower, callouts light up
@@ -397,12 +336,13 @@
     gsap.set(leadDots, { scale: 0, transformOrigin: "center" });
     gsap.set(calls, { opacity: 0, y: 30 });
     const tl = gsap.timeline({
-      scrollTrigger: { trigger: ".gradea", start: "top top", end: "+=200%", scrub: 1, pin: ".ga-pin", anticipatePin: 1, onRefresh: layoutLeaders }
+      // client 6/11: shorter pin so the three callouts are reached with less scrolling
+      scrollTrigger: { trigger: ".gradea", start: "top top", end: "+=110%", scrub: .6, pin: ".ga-pin", anticipatePin: 1, onRefresh: layoutLeaders }
     });
-    tl.from(".ga-head > *", { y: 40, opacity: 0, stagger: .1, duration: .4 }, 0)
-      .from(".ga-tower", { y: 120, duration: 1, ease: "power2.out" }, 0);
+    tl.from(".ga-head > *", { y: 40, opacity: 0, stagger: .1, duration: .3 }, 0)
+      .from(".ga-tower", { y: 120, duration: .8, ease: "power2.out" }, 0);
     ringParts.forEach((r, i) => {
-      const t = .5 + i * 1.1;
+      const t = .3 + i * .8;
       tl.to([r.b1, r.b2], { strokeDashoffset: 0, duration: .25, ease: "none" }, t)
         .to([r.f1, r.f2], { strokeDashoffset: 0, duration: .6, ease: "power1.inOut" }, t + .1)
         .to(r.fill, { attr: { opacity: 1 }, duration: .3 }, t + .5)
@@ -411,7 +351,7 @@
         .to(calls[i], { opacity: 1, y: 0, duration: .35 }, t + .7)
         .set(r.glow, { opacity: 1 }, t + .7);
     });
-    tl.to({}, { duration: .4 });
+    tl.to({}, { duration: .25 });
     window.addEventListener("resize", layoutLeaders);
     return () => window.removeEventListener("resize", layoutLeaders);
   });
@@ -426,118 +366,40 @@
 
   /* ------------------------------------------------------------------
      STACKING PLAN — isometric, clickable floors → NLA panel
-     Client corrections (2026-10-30): typical office 10F–13F; ABI Tower office 14F–16F;
-     rooftop sits above 16F; plans = brochure plates with zone colours + legend.
+     Client: typical office 10F–13F; ABI Tower office 14F–16F; rooftop above 16F.
+     6/11: plans from the Vietnamese floor-plan brochure (B1 + B2 shown together), no "Tầng 14F-16F" heading.
   ------------------------------------------------------------------ */
   const SRC = ABI.stack;
   const G = id => SRC.groups.find(g => g.id === id);
-  const LEG_1F = [["Commercial", "#cceffc"], ["Lobby/Hall", "#e6f7fd"], ["Outdoor Parking", "#dcdbdb"], ["Common Area & Technical Area", "#edf5fc"]];
-  const LEG_OF = [["Office", "#d0d2dd"], ["Green Area", "#d3e9bb"], ["Common Area & Technical Area", "#e7eef6"]];
-  const STACK = {
-    summary: SRC.summary,
-    groups: [
-      { ...G("f16"), id: "rf", floors: ["R"], tag: "Rooftop", title: "Tầng thượng" },
-      { ...G("f15"), id: "f14-16", floors: ["16", "15", "14"], tag: "14F – 16F", title: "Tầng 14F-16F: Văn phòng ABI Tower" },
-      { ...G("f10-14"), id: "f10-13", floors: ["13", "12", "11", "10"], tag: "10F – 13F", plan: "b-10-13f.webp", legend: LEG_OF },
-      { ...G("f6-9"), plan: "b-6-9f.webp", legend: LEG_OF },
-      { ...G("f3-5"), plan: "b-3-5f.webp", legend: LEG_OF },
-      { ...G("f2"), plan: "b-2f.webp", legend: LEG_OF },
-      { ...G("f1"), plan: "b-1f.webp", legend: LEG_1F },
-      G("fb")
-    ]
-  };
-
-  const iso = $("iso");
-  const Cc = .866, Ss = .5, L = 240, D = 140, OX = 175, OY = 412, FH = 20;
-  const P = (x, y, z) => [OX + (x - z) * Cc, OY + (x + z) * Ss - y];
-  const floorsSpec = [];   // bottom → top
-  floorsSpec.push({ key: "B2", y0: -40, y1: -20 }, { key: "B1", y0: -20, y1: 0 }, { key: "1", y0: 0, y1: 30 });
-  for (let f = 2; f <= 16; f++) floorsSpec.push({ key: String(f), y0: 30 + (f - 2) * FH, y1: 30 + (f - 1) * FH });
-  const roofY = 30 + 15 * FH, ti = 60, tz = 36, th = 16;
-  floorsSpec.push({ key: "R", y0: roofY, y1: roofY + th, roof: true });
-
-  el("polygon", { class: "ground", points: pts([P(-30, 0, -30), P(L + 30, 0, -30), P(L + 30, 0, D + 30), P(-30, 0, D + 30)]) }, iso);
-  const groupEls = {}, order = [];
-  STACK.groups.slice().reverse().forEach(g => {        // bottom → top
-    const ge = el("g", { class: `grp t-${g.type}`, "data-g": g.id, tabindex: 0, role: "button", "aria-label": g.tag }, iso);
-    groupEls[g.id] = ge; order.push(ge);
-    floorsSpec.filter(f => g.floors.includes(f.key)).forEach(f => {
-      const fe = el("g", { class: "fl" + (f.key.startsWith("B") ? " is-basement" : "") }, ge);
-      const a = f.y0, b = f.y1;
-      const x0 = f.roof ? ti : 0, x1 = f.roof ? L - ti : L, z0 = f.roof ? tz : 0, z1 = f.roof ? D - tz : D;
-      el("polygon", { class: "fz-l", points: pts([P(x0, a, z1), P(x1, a, z1), P(x1, b, z1), P(x0, b, z1)]) }, fe);
-      el("polygon", { class: "fz-r", points: pts([P(x1, a, z0), P(x1, a, z1), P(x1, b, z1), P(x1, b, z0)]) }, fe);
-      el("polygon", { class: "fz-t", points: pts([P(x0, b, z0), P(x1, b, z0), P(x1, b, z1), P(x0, b, z1)]) }, fe);
-    });
+  const HOME_GROUPS = [
+    { ...G("f16"), id: "rf", floors: ["R"], tag: "Rooftop", title: "Tầng thượng" },
+    { ...G("f15"), id: "f14-16", floors: ["16", "15", "14"], tag: "14F – 16F", desc: "Văn phòng ABI Tower" },
+    { ...G("f10-14"), id: "f10-13", floors: ["13", "12", "11", "10"], tag: "10F – 13F", plans: ["v-10-13f.webp"], legend: ABI.LEG.office },
+    { ...G("f6-9"), plans: ["v-6-9f.webp"], legend: ABI.LEG.office },
+    { ...G("f3-5"), plans: ["v-3-5f.webp"], legend: ABI.LEG.office },
+    { ...G("f2"), plans: ["v-2f.webp"], legend: ABI.LEG.office },
+    { ...G("f1"), plans: ["v-1f.webp"], legend: ABI.LEG.lobby },
+    { ...G("fb"), plans: ["v-b1.webp", "v-b2.webp"], planTags: ["Tầng B1", "Tầng B2"], legend: ABI.LEG.basement }
+  ];
+  const fpEls = [$("fpTag"), $("fpNla"), $("fpDesc"), $("fpMedia"), $("fpLegend")];
+  ABI.mountStacking($("iso"), {
+    groups: HOME_GROUPS,
+    initial: "f10-13",
+    onSelect: g => {
+      gsap.fromTo(fpEls, { y: 12, opacity: 0 }, { y: 0, opacity: 1, stagger: .04, duration: .5, ease: "power2.out" });
+      $("fpTag").textContent = g.tag;
+      $("fpNla").textContent = g.nla ? "Diện tích cho thuê: " + g.nla : "";
+      $("fpDesc").textContent = g.desc || "";
+      const media = $("fpMedia");
+      media.classList.toggle("is-photo", !g.plans);
+      media.classList.toggle("is-pair", !!(g.plans && g.plans.length > 1));
+      media.innerHTML = g.plans
+        ? g.plans.map((p, i) => `<div class="fp-plan">${g.planTags ? `<span>${g.planTags[i]}</span>` : ""}<img src="../assets/plans/${p}" alt="Mặt bằng ${g.planTags ? g.planTags[i] : g.tag}"></div>`).join("")
+        : `<img src="../assets/img/${g.img}" alt="${g.title || g.tag}">`;
+      $("fpLegend").innerHTML = ABI.legendHTML(g.legend);
+    }
   });
-
-  // labels with leader lines
-  const lblEls = {}, lblGroups = {};
-  STACK.groups.forEach(g => {
-    const fs = floorsSpec.filter(f => g.floors.includes(f.key));
-    const ymid = (Math.min(...fs.map(f => f.y0)) + Math.max(...fs.map(f => f.y1))) / 2;
-    const [x, y] = P(fs[0].roof ? L - ti : L, ymid, fs[0].roof ? tz : 0);
-    const lg = el("g", { class: "lblg" }, iso);
-    el("line", { class: "lead", x1: x + 8, y1: y, x2: 470, y2: y }, lg);
-    const t = el("text", { class: "lbl", x: 478, y: y + 4 }, lg);
-    t.textContent = g.tag;
-    lblEls[g.id] = t; lblGroups[g.id] = lg;
-  });
-
-  // panel (client layout 3/11: no floor chips — floors are picked on the isometric tower)
-  let active = null;
-  function select(id) {
-    const g = STACK.groups.find(x => x.id === id);
-    if (active) { groupEls[active].classList.remove("is-active"); lblEls[active].classList.remove("is-active"); }
-    active = id;
-    const ge = groupEls[id];
-    ge.classList.add("is-active");
-    lblEls[id].classList.add("is-active");
-    // explode: everything above the chosen floors lifts so its top slab is revealed
-    const idx = order.indexOf(ge);
-    order.forEach((o, i) => gsap.to([o, lblGroups[o.dataset.g]], { y: i > idx ? -34 : 0, duration: .7, ease: "power3.inOut" }));
-
-    const panel = [$("fpTag"), $("fpNla"), $("fpDesc"), $("fpMedia"), $("fpLegend")];
-    gsap.fromTo(panel, { y: 12, opacity: 0 }, { y: 0, opacity: 1, stagger: .04, duration: .5, ease: "power2.out" });
-    $("fpTag").textContent = g.tag;
-    $("fpNla").textContent = g.nla ? "Diện tích cho thuê: " + g.nla : "";
-    $("fpDesc").textContent = g.desc || g.title;   // floors without a description show their title
-    const media = $("fpMedia");
-    media.classList.toggle("is-photo", !g.plan);
-    media.innerHTML = g.plan
-      ? `<img src="../assets/plans/${g.plan}" alt="Mặt bằng ${g.tag}">`
-      : `<img src="../assets/img/${g.img}" alt="${g.title}">`;
-    $("fpLegend").innerHTML = (g.legend || []).map(([k, c]) => `<li><i style="--c:${c}"></i>${k}</li>`).join("");
-  }
-  Object.entries(groupEls).forEach(([id, ge]) => {
-    ge.addEventListener("mouseenter", () => ge.classList.add("is-hover"));
-    ge.addEventListener("mouseleave", () => ge.classList.remove("is-hover"));
-    ge.addEventListener("click", () => select(id));
-    ge.addEventListener("keydown", e => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), select(id)));
-  });
-  select("f10-13");
-
-  gsap.from(iso.querySelectorAll(".grp .fl"), {
-    opacity: 0, duration: .5, ease: "power2.out", stagger: { each: .05, from: "start" },
-    scrollTrigger: { trigger: ".stack", start: "top 70%" }
-  });
-
-  // stats (top row, next to the title) count up
-  const stats = $("stackStats");
-  STACK.summary.forEach(s => {
-    const d = document.createElement("div");
-    d.innerHTML = `<dt>${s.k}</dt><dd><span>${s.v}</span>${s.unit ? `<small>${s.unit}</small>` : ""}</dd>`;
-    stats.appendChild(d);
-    const span = d.querySelector("span");
-    const target = parseFloat(String(s.v).replace(/\./g, "").replace(",", "."));
-    const dec = String(s.v).includes(",") ? 1 : 0;
-    const obj = { v: 0 };
-    gsap.to(obj, {
-      v: target, duration: 1.8, ease: "power2.out",
-      scrollTrigger: { trigger: stats, start: "top 90%" },
-      onUpdate: () => { span.textContent = obj.v.toLocaleString("vi-VN", { minimumFractionDigits: dec, maximumFractionDigits: dec }); }
-    });
-  });
+  ABI.mountStats($("stackStats"), SRC.summary);
 
   /* ------------------------------------------------------------------
      AMENITIES — hover list swaps the image with a wipe
@@ -563,62 +425,19 @@
   gsap.from(".amen-view", { clipPath: "inset(0% 100% 0% 0% round 28px)", duration: 1.4, ease: "expo.inOut", scrollTrigger: { trigger: ".amen-view", start: "top 85%" } });
 
   /* ------------------------------------------------------------------
-     AWARDS + NEWS + LEASING
+     AWARDS + NEWS
   ------------------------------------------------------------------ */
   gsap.from(".aw-item", { y: 40, opacity: 0, stagger: .12, duration: 1, ease: "expo.out", scrollTrigger: { trigger: ".aw-list", start: "top 88%" } });
   gsap.from(".aw-logo img", { scale: .6, rotate: -12, opacity: 0, stagger: .12, duration: 1.2, ease: "back.out(1.6)", scrollTrigger: { trigger: ".aw-list", start: "top 88%" } });
   gsap.from(".aw-media", { clipPath: "inset(100% 0% 0% 0% round 28px)", duration: 1.4, ease: "expo.inOut", scrollTrigger: { trigger: ".aw-media", start: "top 85%" } });
-  gsap.fromTo(".aw-media img", { scale: 1.15 }, { scale: 1, ease: "none", scrollTrigger: { trigger: ".awards", start: "top bottom", end: "bottom top", scrub: true } });
+  gsap.fromTo(".aw-media .slides-in", { scale: 1.12 }, { scale: 1, ease: "none", scrollTrigger: { trigger: ".awards", start: "top bottom", end: "bottom top", scrub: true } });
   gsap.from(".news-card", { y: 50, opacity: 0, stagger: .1, duration: 1, ease: "expo.out", scrollTrigger: { trigger: ".news-grid", start: "top 88%" } });
-  gsap.from(".lease-card", { y: 60, opacity: 0, duration: 1.2, ease: "expo.out", scrollTrigger: { trigger: ".lease", start: "top 85%" } });
-  ABI.mountQR($("qr"), 120);
-
-  // lead form (demo: validates, nothing is sent)
-  const form = $("leadForm"), msg = $("leadMsg");
-  // "Khác" opens an optional text field to describe the need
-  const otherBox = $("fOther"), otherInput = otherBox.querySelector("input");
-  const otherCheck = form.querySelector('[name="interest"][value="other"]');
-  const syncOther = focus => {
-    otherBox.classList.toggle("is-on", otherCheck.checked);
-    otherInput.disabled = !otherCheck.checked;
-    if (otherCheck.checked && focus) setTimeout(() => otherInput.focus({ preventScroll: true }), 250);
-  };
-  otherCheck.addEventListener("change", () => syncOther(true));
-  form.addEventListener("submit", e => {
-    e.preventDefault();
-    const f = form.elements;
-    const bad = [];
-    const need = (input, ok) => { input.classList.toggle("is-bad", !ok); if (!ok) bad.push(input); };
-    need(f.name, f.name.value.trim().length > 1);
-    need(f.email, /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.value.trim()));
-    need(f.phone, f.phone.value.replace(/\D/g, "").length >= 9);
-    const checks = form.querySelector(".f-checks");
-    const anyInterest = [...form.querySelectorAll('[name="interest"]')].some(c => c.checked);
-    checks.classList.toggle("is-bad", !anyInterest);
-    msg.className = "f-msg";
-    if (bad.length || !anyInterest) {
-      msg.classList.add("is-err");
-      msg.textContent = "Vui lòng điền đủ các mục có dấu *";
-      (bad[0] || checks.querySelector("input")).focus();
-      return;
-    }
-    msg.classList.add("is-ok");
-    msg.textContent = "Cảm ơn bạn! (Bản demo — thông tin chưa được gửi đi)";
-    form.reset();
-    syncOther(false);
-  });
 
   // generic reveal for section headings
   gsap.utils.toArray(".loc-copy > *, .stack-head > *, .amen-head > *, .aw-copy > .eyebrow, .aw-copy > .h2, .aw-copy > .body, .news-head > *").forEach(n => gsap.from(n, {
     y: 30, opacity: 0, duration: 1, ease: "expo.out", scrollTrigger: { trigger: n, start: "top 90%" }
   }));
-
-  // nav: mark the section in view
-  const navMap = [["#top", ".hero"], ["#gioi-thieu", ".intro"], ["#cam-hung", ".cloudsec"], ["#van-phong", ".gradea"], ["#tien-ich", ".amen"], ["#lien-he", ".lease"]];
-  navMap.forEach(([href, sel]) => {
-    const a = hdr.querySelector(`.hdr-nav a[href="${href}"]`);
-    ScrollTrigger.create({ trigger: sel, start: "top 45%", end: "bottom 45%", onToggle: s => a && a.classList.toggle("is-current", s.isActive) });
-  });
+  ABI.lateReveals();
 
   window.addEventListener("load", () => { ScrollTrigger.refresh(); paintGrad(); });
 })();
