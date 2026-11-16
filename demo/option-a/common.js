@@ -86,7 +86,8 @@
   const syncChrome = () => {
     const vh = window.innerHeight, heroBottom = heroEl ? heroEl.getBoundingClientRect().bottom : 0, ftrTop = ftrEl.getBoundingClientRect().top;
     hdr.classList.toggle("is-solid", heroBottom <= 80);
-    dock && dock.classList.toggle("is-on", heroBottom <= vh * .6 && ftrTop > vh * .9);
+    const dockOn = heroBottom <= vh * .6 && ftrTop > vh * .9;
+    if (dock) { dock.classList.toggle("is-on", dockOn); dock.inert = !dockOn; }   // hidden dock: out of the tab order
   };
   window.addEventListener("scroll", syncChrome, { passive: true });
   window.addEventListener("resize", syncChrome);

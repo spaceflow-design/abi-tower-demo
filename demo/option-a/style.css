@@ -54,6 +54,7 @@ h1, h2, h3, p, figure, ol, ul, dl, dd, fieldset { margin: 0; padding: 0; }
 fieldset { border: 0; min-width: 0; }
 ol, ul { list-style: none; }
 :focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; border-radius: 6px; }
+[data-focus-target]:focus { outline: none; }
 
 /* ---------- type ---------- */
 .eyebrow {
@@ -622,37 +623,47 @@ ol, ul { list-style: none; }
 /* ==========================================================================
    FOOTER
    ========================================================================== */
-/* compact 3-tier footer (ref: Mobbin "United Carriers"): logo + socials / menu · address · contacts · map / legal */
-.ftr { padding: 52px var(--gutter) 24px; background: var(--night); color: rgba(255,255,255,.72); }
-.ftr-head, .ftr-grid, .ftr-bottom { max-width: 1440px; margin: 0 auto; }
-.ftr-head { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-bottom: 26px; border-bottom: 1px solid rgba(255,255,255,.12); }
-.ftr-logo { width: 104px; }
+/* compact footer (ref: Mobbin — Harvest, Givingli, ISO Meet): logo + the menu on one row, contacts
+   in one row beside a small map, then a slim bar: copyright left, socials + back-to-top right. */
+.ftr { padding: clamp(36px, 4vw, 52px) var(--gutter) 18px; background: var(--night); color: rgba(255,255,255,.72); }
+.ftr-top, .ftr-main, .ftr-bottom { max-width: 1440px; margin: 0 auto; }
+.ftr-top { display: flex; align-items: center; justify-content: space-between; gap: 18px 48px; padding-bottom: 22px; border-bottom: 1px solid rgba(255,255,255,.12); }
+.ftr-logo-link { flex: none; }
+.ftr-logo { width: 74px; }
+/* inline links + text-wrap: balance: when the row has to wrap it splits evenly (3+3, 2+2+2), never 5+1.
+   Each link carries its gap as a right margin; the negative margin cancels it at the line end. */
+.ftr-menu { --mg: clamp(18px, 2.4vw, 40px); text-align: right; text-wrap: balance; margin-right: calc(-1 * var(--mg)); font-size: 14px; line-height: 1.4; }
+.ftr-menu a { display: inline-block; margin: 4px var(--mg) 4px 0; color: rgba(255,255,255,.82); white-space: nowrap; transition: color .2s; }
+.ftr-menu a:hover { color: var(--cyan-l); }
+.ftr-main { display: grid; grid-template-columns: auto minmax(240px, 1fr); align-items: stretch; gap: 24px clamp(32px, 4vw, 72px); padding-top: 26px; }
+.ftr-reach { display: grid; grid-template-columns: auto auto auto; align-content: start; gap: 18px clamp(28px, 4vw, 64px); }
+.ftr-reach dt { margin-bottom: 10px; font-family: var(--f-display); font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.5); }
+.ftr-reach dd { font-size: 15px; line-height: 1.55; color: rgba(255,255,255,.88); }
+.ftr-reach a { color: #fff; white-space: nowrap; transition: color .2s; }
+.ftr-reach a:hover { color: var(--cyan-l); }
+.ftr-map { position: relative; justify-self: end; width: 100%; max-width: 460px; min-height: 112px; border-radius: 16px; overflow: hidden; background: #1d2353; }
+.ftr-map iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; filter: saturate(.85); }
 .social { display: flex; gap: 8px; }
 .social a, .dock a {
   width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
   transition: background .25s, color .25s, transform .3s var(--ease);
 }
-.social a { border: 1px solid rgba(255,255,255,.22); color: #fff; }
+.social a { width: 38px; height: 38px; border: 1px solid rgba(255,255,255,.22); color: #fff; }
 .social a:hover { background: #fff; color: var(--navy); transform: translateY(-2px); }
 .social svg, .dock svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .zalo { font-family: var(--f-display); font-size: 10px; font-weight: 700; letter-spacing: .02em; }
-.ftr-grid { display: grid; grid-template-columns: 1.35fr 1fr .85fr 1.25fr; gap: 28px clamp(24px, 3vw, 52px); align-items: start; padding-top: 30px; }
-.ftr-k { margin-bottom: 10px; font-family: var(--f-display); font-size: 11px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: rgba(255,255,255,.45); }
-.ftr-col p:not(.ftr-k) { font-size: 14px; line-height: 1.6; max-width: 34ch; }
-.ftr-links { display: grid; grid-template-columns: repeat(2, max-content); gap: 8px 28px; font-size: 14px; }
-.ftr-links a { color: rgba(255,255,255,.8); transition: color .2s; }
-.ftr-links a:hover { color: var(--cyan-l); }
-.ftr-reach { display: grid; gap: 18px; }
-.ftr-reach a { font-family: var(--f-display); font-size: 15px; color: #fff; transition: color .2s; }
-.ftr-reach a:hover { color: var(--cyan-l); }
-.ftr-map { border-radius: 16px; overflow: hidden; height: 150px; background: #1d2353; }
-.ftr-map iframe { width: 100%; height: 100%; border: 0; display: block; filter: saturate(.85); }
-.ftr-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.12); font-size: 13px; }
-.to-top { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; border: 1px solid rgba(255,255,255,.22); color: #fff; }
+.ftr-bottom {
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  margin-top: clamp(24px, 2.4vw, 32px); padding-top: 16px; border-top: 1px solid rgba(255,255,255,.12); font-size: 13px;
+}
+.ftr-end { display: flex; align-items: center; gap: 8px; }
+.to-top { position: relative; width: 38px; height: 38px; margin-left: 14px; display: grid; place-items: center; border-radius: 50%; border: 1px solid rgba(255,255,255,.22); color: #fff; transition: background .25s, color .25s; }
+.to-top::before { content: ""; position: absolute; left: -12px; top: 8px; bottom: 8px; width: 1px; background: rgba(255,255,255,.18); pointer-events: none; }
+.to-top:hover { background: #fff; color: var(--navy); }
 
 /* quick contact dock (bottom-right corner) */
-.dock { position: fixed; z-index: 45; right: 20px; bottom: 24px; display: grid; gap: 10px; transform: translateX(90px); transition: transform .6s var(--ease); }
-.dock.is-on { transform: none; }
+.dock { position: fixed; z-index: 45; right: 20px; bottom: 24px; display: grid; gap: 10px; transform: translateX(90px); visibility: hidden; transition: transform .6s var(--ease), visibility 0s linear .6s; }
+.dock.is-on { transform: none; visibility: visible; transition: transform .6s var(--ease), visibility 0s; }
 .dock a { width: 48px; height: 48px; background: #fff; color: var(--navy); box-shadow: 0 10px 26px -10px rgba(11,14,42,.55); }
 .dock svg { width: 21px; height: 21px; }
 .dock .zalo { font-size: 12px; }
@@ -683,10 +694,6 @@ ol, ul { list-style: none; }
   .hdr-lang { padding: 0; }
   .hdr-cta { padding: 0 15px; font-size: 12.5px; }
   .hdr-brochure { margin-left: -4px; }
-  .ftr-grid { grid-template-columns: 1.15fr 1fr; align-items: end; }
-  .ftr-grid > :nth-child(-n+2) { align-self: start; }
-  .ftr-reach { grid-template-columns: repeat(2, max-content); column-gap: 44px; }
-  .ftr-map { height: 150px; }
 }
 /* tablets / phones: nav collapses into the burger */
 @media (max-width: 1100px) {
@@ -709,7 +716,7 @@ ol, ul { list-style: none; }
   .cat:nth-child(1), .cat:nth-child(2) { border-top: 0; }
   .ga-head { max-width: 46vw; }
   .call { width: min(300px, 34vw); }
-  .stack-top { grid-template-columns: 1fr; gap: 16px; }
+  .stack-top { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .stack-stats { width: 100%; grid-template-columns: repeat(5, 1fr); }
   .stack-stats div:first-child { border-left: 0; padding-left: 0; }
   .stack-grid { grid-template-columns: .8fr 1.2fr; }
@@ -720,6 +727,13 @@ ol, ul { list-style: none; }
   .news-grid { grid-template-columns: repeat(2, 1fr); }
   .lease-card { grid-template-columns: 1fr; }
   .lease-info { order: -1; }
+  /* tablets: menu wraps under the logo; contacts stacked beside the map */
+  .ftr-top { flex-direction: column; align-items: flex-start; }
+  .ftr-menu { text-align: left; }
+  .ftr-main { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: clamp(24px, 4vw, 48px); }
+  .ftr-map { justify-self: stretch; max-width: none; }
+  .ftr-reach { grid-template-columns: 1fr; gap: 16px; }
+  .ftr-map { min-height: 200px; }
 }
 @media (max-width: 1100px) and (orientation: portrait) and (min-width: 721px) {
   .cs-gal { height: min(62vw, 520px); }
@@ -770,9 +784,12 @@ ol, ul { list-style: none; }
   .leaders { display: none; }
   .stack { height: auto; min-height: 0; }
   .stack-grid { flex: none; }
-  .stack-stats { grid-template-columns: repeat(3, 1fr); row-gap: 12px; }
+  /* floors on the first row (3 × 2 cols), GFA + NLA on the second (2 × 3 cols); labels may wrap */
+  .stack-stats { grid-template-columns: repeat(6, minmax(0, 1fr)); row-gap: 12px; }
+  .stack-stats div { grid-column: span 2; padding: 2px 12px; }
+  .stack-stats div:nth-child(n + 4) { grid-column: span 3; }
   .stack-stats div:nth-child(4) { border-left: 0; padding-left: 0; }
-  .stack-stats div { padding: 2px 12px; }
+  .stack-stats dt { white-space: normal; }
   .stack-grid { grid-template-columns: 1fr; }
   .iso { max-height: 58vh; }
   .fp-media { flex: none; height: 230px; }
@@ -792,10 +809,19 @@ ol, ul { list-style: none; }
   .news-card figure { aspect-ratio: 1; }
   .lead { grid-template-columns: 1fr; }
   .lease-qr .qr { width: 100px; height: 100px; }
-  .ftr-grid { grid-template-columns: 1fr; gap: 24px; }
-  .ftr-reach { grid-template-columns: 1fr 1fr; }
-  .ftr-map { height: 170px; }
-  .ftr-bottom { font-size: 12px; }
+  .ftr-top { padding-bottom: 22px; }
+  .ftr-logo { width: 72px; }
+  .ftr-menu { --mg: 16px; }
+  .ftr-main { grid-template-columns: minmax(0, 1fr); row-gap: 24px; padding-top: 24px; }
+  .ftr-reach { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .ftr-addr { grid-column: 1 / -1; }
+  .ftr-map { min-height: 180px; }
+  /* icons + back-to-top on one row, copyright under them */
+  .ftr-bottom { flex-wrap: wrap; row-gap: 14px; font-size: 12px; }
+  .ftr-bottom p { order: 2; width: 100%; }
+  .ftr-end { width: 100%; }
+  .ftr-end .to-top { margin-left: auto; }
+  .ftr-end .to-top::before { display: none; }
   .dock { right: 12px; bottom: 16px; gap: 8px; }
   .dock a { width: 42px; height: 42px; }
   .dock li:nth-child(2), .dock li:nth-child(4) { display: none; }

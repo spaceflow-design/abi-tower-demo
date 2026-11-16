@@ -107,6 +107,9 @@ ABI.initSmooth = function () {
     const y = id === "#top" ? 0 : box.getBoundingClientRect().top + window.scrollY - margin;
     if (lenis) lenis.scrollTo(y);
     else window.scrollTo({ top: y, behavior: ABI.reduceMotion ? "auto" : "smooth" });
+    // keyboard users continue from the target, not from the link they pressed
+    if (!el.hasAttribute("tabindex")) { el.setAttribute("tabindex", "-1"); el.setAttribute("data-focus-target", ""); }
+    el.focus({ preventScroll: true });
   });
   return lenis;
 };
