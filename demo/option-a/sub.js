@@ -193,6 +193,28 @@
     p.addEventListener("click", open);
     p.addEventListener("focus", open);
   });
+  // titles: a small tag shows on closed panels, the h3 (large) on the open one; each is laid out at the width
+  // its panel has once the move ends, so the text never re-wraps mid-animation (see sub.css)
+  const amRow = document.querySelector(".am-row");
+  if (amRow) {
+    panels.forEach(p => {
+      const h = p.querySelector("h3"), tag = document.createElement("span");
+      tag.className = "am-tag"; tag.setAttribute("aria-hidden", "true"); tag.textContent = h.textContent;
+      h.after(tag);
+    });
+    const sizeTitles = () => {
+      if (stackedPanels.matches) { amRow.style.removeProperty("--am-open-w"); amRow.style.removeProperty("--am-closed-w"); return; }
+      const cs = getComputedStyle(amRow);
+      const grow = parseFloat(cs.getPropertyValue("--am-grow")) || 3.4;
+      const gap = parseFloat(cs.columnGap) || 0;
+      const unit = (amRow.clientWidth - gap * (panels.length - 1)) / (panels.length - 1 + grow);
+      const inset = 2 * (parseFloat(getComputedStyle(panels[0].querySelector("h3")).left) || 20);
+      amRow.style.setProperty("--am-open-w", Math.max(0, unit * grow - inset).toFixed(1) + "px");
+      amRow.style.setProperty("--am-closed-w", Math.max(0, unit - inset).toFixed(1) + "px");
+    };
+    sizeTitles();
+    new ResizeObserver(sizeTitles).observe(amRow);
+  }
   panels.length && gsap.from(panels, { clipPath: "inset(100% 0% 0% 0% round 28px)", duration: 1.3, ease: "expo.out", stagger: .1, scrollTrigger: { trigger: ".am-row", start: "top 82%" } });
   const gstage = document.querySelector(".green-stage");
   if (gstage) {

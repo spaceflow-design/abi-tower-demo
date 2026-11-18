@@ -255,28 +255,28 @@
    HỆ TIỆN ÍCH CHUNG
    ========================================================================== */
 /* five panels; the open one widens (ref: Cloud 11 Bangkok) */
-.am-row { max-width: 1440px; margin: 0 auto; display: flex; gap: clamp(8px, 1vw, 14px); height: clamp(340px, calc(100 * var(--vh) - 250px), 680px); }
+.am-row { --am-grow: 3.4; max-width: 1440px; margin: 0 auto; display: flex; gap: clamp(8px, 1vw, 14px); height: clamp(340px, calc(100 * var(--vh) - 250px), 680px); }
 .am-panel { position: relative; flex: 1; min-width: 0; border-radius: var(--r-lg); overflow: hidden; cursor: pointer; outline: none; transition: flex .9s var(--ease); clip-path: inset(0 round var(--r-lg)); }
-.am-panel.is-open { flex: 3.4; }
+.am-panel.is-open { flex: var(--am-grow); }   /* sub.js reads --am-grow to size the titles */
 .am-panel img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.08); transition: transform 1.2s var(--ease); }
 .am-panel.is-open img { transform: none; }
 .am-panel::after { content: ""; position: absolute; inset: 30% 0 0; background: linear-gradient(transparent, rgba(11,14,42,.8)); pointer-events: none; }
 .am-n { position: absolute; z-index: 1; left: 18px; top: 16px; padding: 6px 11px; border-radius: 999px; background: rgba(255,255,255,.88); font-family: var(--f-display); font-size: 12px; font-weight: 600; color: var(--navy); }
-.am-panel h3 {
-  position: absolute; z-index: 1; left: 20px; right: 20px; bottom: 20px; color: #fff;
-  font-family: var(--f-display); font-weight: 500; font-size: 16px; line-height: 1.25; transition: font-size .6s var(--ease);
-}
-.am-panel.is-open h3 { font-size: clamp(22px, 2.2vw, 34px); }
-/* tablets: the closed panels are only ~90–120px wide and their titles broke one word per line ("Khu vực /
-   chung / tầng / thượng"), so a closed panel sets its title on one vertical line; the open one reads across.
-   Each state fades in under its own keyframe name, so switching panels replays it. (Phones stack the panels.) */
+/* Titles (client 18/11): the title used to grow 16px → 32px while its panel widened, so it re-wrapped and
+   wobbled on every frame. Now each state has its own fixed-size text, swapped by a fade: a small tag on a closed
+   panel, the large h3 on the open one. Both are laid out at the width of their finished panel (--am-closed-w /
+   --am-open-w, set by sub.js), so neither re-wraps while the panel is still moving. */
+.am-panel h3, .am-tag { position: absolute; z-index: 1; left: 20px; bottom: 20px; color: #fff; font-family: var(--f-display); font-weight: 500; }
+.am-panel h3 { width: var(--am-open-w, calc(100% - 40px)); font-size: clamp(22px, 2.2vw, 34px); line-height: 1.2; opacity: 0; transform: translateY(12px); transition: opacity .25s, transform .25s; }
+.am-panel.is-open h3 { opacity: 1; transform: none; transition: opacity .6s var(--ease) .3s, transform .8s var(--ease) .3s; }
+.am-tag { width: var(--am-closed-w, calc(100% - 40px)); font-size: 16px; line-height: 1.25; text-wrap: balance; transition: opacity .5s var(--ease) .45s; }
+.am-panel.is-open .am-tag { opacity: 0; transition: opacity .2s; }
+/* tablets: closed panels are only ~90–120px wide, so their tag runs up the panel on one vertical line
+   (it broke one word per line before). Phones stack the panels and use full-width text. */
 @media (min-width: 721px) and (max-width: 1100px) {
-  .am-panel h3 { left: 14px; right: 14px; bottom: 16px; font-size: 14px; }
-  .am-panel:not(.is-open) h3 { right: auto; writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; max-height: calc(100% - 72px); overflow: hidden; text-overflow: ellipsis; animation: amTitleA .5s .25s both; }
-  .am-panel.is-open h3 { animation: amTitleB .6s .4s both; }
+  .am-panel h3, .am-tag { left: 14px; bottom: 16px; }
+  .am-tag { width: auto; max-height: calc(100% - 72px); writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
 }
-@keyframes amTitleA { from { opacity: 0; } }
-@keyframes amTitleB { from { opacity: 0; } }
 .am-panel:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 
 /* sustainability */
