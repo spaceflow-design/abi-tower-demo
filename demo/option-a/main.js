@@ -19,7 +19,10 @@
      Scrolling back up into the hero rewinds to frame 1; scrolling down plays frame 2 again.
   ------------------------------------------------------------------ */
   const chars = [];
+  const heroTitle = document.querySelector(".hero-title");
+  heroTitle && heroTitle.setAttribute("aria-label", heroTitle.textContent.trim().replace(/\s+/g, " "));
   document.querySelectorAll(".hero-title [data-chars]").forEach(line => {
+    line.setAttribute("aria-hidden", "true");
     const words = line.textContent.trim().normalize("NFC").split(/\s+/);
     line.innerHTML = words.map(w => `<span class="wd">${Array.from(w).map(c => `<span class="ch">${c}</span>`).join("")}</span>`).join(" ");
     chars.push(...line.querySelectorAll(".ch"));
@@ -210,11 +213,11 @@
   // draw-on sequence
   if (mapSvg) {
     const rings = q(".m-rings circle, .m-rings path"), roads = q(".m-road path");
-    gsap.set([...rings, ...roads], { strokeDasharray: 1, strokeDashoffset: 1 });
+    gsap.set([...rings, ...roads], { autoRound: false, strokeDasharray: 1, strokeDashoffset: 1 });
     const mapTl = gsap.timeline({ scrollTrigger: { trigger: ".map-card", start: "top 75%" } });
     mapTl.from(q(".m-street"), { opacity: 0, duration: .8 })
-      .to(rings, { strokeDashoffset: 0, duration: 1.4, ease: "power2.inOut", stagger: .12 }, .1)
-      .to(roads, { strokeDashoffset: 0, duration: 1.4, ease: "power2.inOut", stagger: .06 }, .3)
+      .to(rings, { autoRound: false, strokeDashoffset: 0, duration: 1.4, ease: "power2.inOut", stagger: .12 }, .1)
+      .to(roads, { autoRound: false, strokeDashoffset: 0, duration: 1.4, ease: "power2.inOut", stagger: .06 }, .3)
       .from(q(".m-rlabels, .m-areas, .m-bridge, .m-metro"), { opacity: 0, duration: .6 }, 1.1)
       .from(q(".m-poi .m-dot"), { scale: 0, transformOrigin: "50% 50%", duration: .5, ease: "back.out(2)", stagger: .02 }, 1)
       .from(q(".m-poi .m-glyph, .m-poi .m-lbl"), { opacity: 0, duration: .5 }, 1.5)
@@ -276,10 +279,15 @@
       .fromTo(f.querySelector("img"), { scale: 1.25 }, { scale: 1, duration: 1.2, ease: "none" }, i * .55);
   });
   gsap.from(".cs-copy > *", { y: 34, opacity: 0, stagger: .1, duration: 1, ease: "expo.out", scrollTrigger: { trigger: ".cs-copy", start: "top 90%" } });
-  // faint clouds drifting behind (client 6/11: "đám mây chìm"); CSS drifts them sideways, scroll adds depth
-  gsap.utils.toArray(".cs-cloud").forEach((c, i) => gsap.fromTo(c, { yPercent: 18 + i * 6 }, {
-    yPercent: -18 - i * 6, ease: "none", scrollTrigger: { trigger: ".cloudsec", start: "top bottom", end: "bottom top", scrub: true }
-  }));
+  // the flowing ribbon (client 17/11, shape of the "The Cloud" sculpture): drawn in as the section scrolls in,
+  // then a soft light keeps running along it
+  const rb = gsap.utils.toArray(".cs-ribbon .rb-shade, .cs-ribbon .rb-band, .cs-ribbon .rb-line");
+  gsap.set(rb, { autoRound: false, strokeDasharray: "1 1", strokeDashoffset: 1 });
+  gsap.timeline({ scrollTrigger: { trigger: ".cloudsec", start: "top 85%", end: "top 15%", scrub: 1 } })
+    .to(rb, { autoRound: false, strokeDashoffset: 0, ease: "none", stagger: .12 });
+  gsap.set(".cs-ribbon .rb-glint", { autoRound: false, strokeDasharray: ".12 .88", strokeDashoffset: .12 });
+  ABI.reduceMotion || gsap.to(".cs-ribbon .rb-glint", { autoRound: false, strokeDashoffset: -.88, duration: 7, ease: "none", repeat: -1 });
+  gsap.fromTo(".cs-ribbon", { yPercent: 8 }, { yPercent: -8, ease: "none", scrollTrigger: { trigger: ".cloudsec", start: "top bottom", end: "bottom top", scrub: true } });
 
   /* ------------------------------------------------------------------
      GRADE A — glowing rings ("viền") wrap the tower, callouts light up
@@ -299,8 +307,8 @@
     const glow = el("path", { class: "r-glow", d: `M${pts([Lp, C, R])}`, pathLength: 1 }, g);
     const b1 = el("path", { class: "r-base", d: `M${pts([R, B, Lp])}`, pathLength: 1 }, gb);
     const b2 = el("path", { class: "r-base", d: `M${pts([off(R), off(B), off(Lp)])}`, pathLength: 1 }, gb);
-    [f1, f2, b1, b2].forEach(p => gsap.set(p, { strokeDasharray: "1 1", strokeDashoffset: 1 }));
-    gsap.set(glow, { strokeDasharray: "0.08 0.92", strokeDashoffset: 0.08, opacity: 0 });
+    [f1, f2, b1, b2].forEach(p => gsap.set(p, { autoRound: false, strokeDasharray: "1 1", strokeDashoffset: 1 }));
+    gsap.set(glow, { autoRound: false, strokeDasharray: "0.08 0.92", strokeDashoffset: 0.08, opacity: 0 });
     return { fill, f1, f2, b1, b2, glow, anchorL: Lp, anchorR: R };
   });
   const calls = gsap.utils.toArray(".call");
@@ -328,12 +336,12 @@
       leadDots[i].setAttribute("cx", ax); leadDots[i].setAttribute("cy", ay);
     });
   }
-  ringParts.forEach((r, i) => gsap.to(r.glow, { strokeDashoffset: -0.92, duration: 2.6, ease: "none", repeat: -1, delay: i * .5 }));
+  ABI.reduceMotion || ringParts.forEach((r, i) => gsap.to(r.glow, { autoRound: false, strokeDashoffset: -0.92, duration: 2.6, ease: "none", repeat: -1, delay: i * .5 }));
 
   const GA_FULL = "(min-width: 1101px), (min-width: 721px) and (orientation: landscape)";
   mm.add(GA_FULL, () => {
     layoutLeaders();
-    leadPaths.forEach(p => gsap.set(p, { strokeDasharray: "1 1", strokeDashoffset: 1 }));
+    leadPaths.forEach(p => gsap.set(p, { autoRound: false, strokeDasharray: "1 1", strokeDashoffset: 1 }));
     gsap.set(leadDots, { scale: 0, transformOrigin: "center" });
     gsap.set(calls, { opacity: 0, y: 30 });
     const tl = gsap.timeline({
@@ -344,11 +352,11 @@
       .from(".ga-tower", { y: 120, duration: .8, ease: "power2.out" }, 0);
     ringParts.forEach((r, i) => {
       const t = .3 + i * .8;
-      tl.to([r.b1, r.b2], { strokeDashoffset: 0, duration: .25, ease: "none" }, t)
-        .to([r.f1, r.f2], { strokeDashoffset: 0, duration: .6, ease: "power1.inOut" }, t + .1)
+      tl.to([r.b1, r.b2], { autoRound: false, strokeDashoffset: 0, duration: .25, ease: "none" }, t)
+        .to([r.f1, r.f2], { autoRound: false, strokeDashoffset: 0, duration: .6, ease: "power1.inOut" }, t + .1)
         .to(r.fill, { attr: { opacity: 1 }, duration: .3 }, t + .5)
         .to(leadDots[i], { scale: 1, duration: .15 }, t + .55)
-        .to(leadPaths[i], { strokeDashoffset: 0, duration: .3 }, t + .6)
+        .to(leadPaths[i], { autoRound: false, strokeDashoffset: 0, duration: .3 }, t + .6)
         .to(calls[i], { opacity: 1, y: 0, duration: .35 }, t + .7)
         .set(r.glow, { opacity: 1 }, t + .7);
     });
@@ -359,7 +367,7 @@
   mm.add("(max-width: 720px), (max-width: 1100px) and (orientation: portrait)", () => {
     ringParts.forEach((r, i) => {
       const st = { trigger: ".ga-tower", start: "top 70%" };
-      gsap.to([r.b1, r.b2, r.f1, r.f2], { strokeDashoffset: 0, duration: 1.2, delay: i * .3, scrollTrigger: st });
+      gsap.to([r.b1, r.b2, r.f1, r.f2], { autoRound: false, strokeDashoffset: 0, duration: 1.2, delay: i * .3, scrollTrigger: st });
       gsap.to(r.fill, { attr: { opacity: 1 }, duration: .6, delay: .8 + i * .3, scrollTrigger: st });
       gsap.set(r.glow, { opacity: 1 });
     });

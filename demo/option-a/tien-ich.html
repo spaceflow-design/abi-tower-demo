@@ -41,7 +41,8 @@
 
 <main>
 <section class="phero" id="top">
-  <div class="phero-bg"><img src="../assets/img/sky-terrace.webp" alt="" style="object-position:50% 60%"></div>
+  <div class="phero-sky" aria-hidden="true"><i class="ps1"></i><i class="ps2"></i><i class="ps3"></i><i class="ps4"></i></div>
+  <div class="phero-grid" aria-hidden="true"><i class="phero-scan"></i></div>
   <svg class="pattern phero-pattern" aria-hidden="true"></svg>
   <div class="phero-in">
     <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Trang chủ</a><i aria-hidden="true">/</i><span aria-current="page">Hệ tiện ích chung</span></nav>
@@ -85,15 +86,23 @@
   </ol>
 </section>
 
-<section class="green dark">
-  <svg class="pattern pattern-fade" aria-hidden="true"></svg>
-  <div class="green-copy" data-reveal>
-    <img class="green-logo" src="../assets/img/leed-gold.png" alt="Logo LEED Gold">
-    <p class="eyebrow"><span class="num">02</span></p>
-    <h2 class="h2">Kiến tạo không gian làm việc bền vững</h2>
-    <p class="body">Hướng tới chuẩn mực LEED Gold, ABI Tower tiên phong ứng dụng các giải pháp công nghệ bền vững cùng hơn 15% diện tích cảnh quan xanh với đa dạng hệ thực vật, tạo dựng môi trường làm việc tối ưu cho sức khỏe của nhân viên và hiện thực hóa các mục tiêu ESG dài hạn của tòa tháp</p>
+<section class="green">
+  <div class="green-stage" data-slides>
+    <div class="slides-in">
+      <img src="../assets/img/rooftop.webp" alt="Vườn cây xanh trên tầng thượng ABI Tower" loading="lazy">
+      <img src="../assets/img/cloud-aerial.webp" alt="Quảng trường tầng 1 với nhiều mảng xanh" loading="lazy">
+      <img src="../assets/img/cloud-2.webp" alt="Lối dạo giữa cảnh quan xanh tầng 1" loading="lazy">
+    </div>
+    <div class="slides-dots" aria-hidden="true"></div>
+    <div class="green-card">
+      <img class="green-logo" src="../assets/img/leed-gold.png" alt="Logo LEED Gold">
+      <div>
+        <p class="eyebrow"><span class="num">02</span></p>
+        <h2 class="h2">Kiến&nbsp;tạo không&nbsp;gian làm&nbsp;việc bền&nbsp;vững</h2>
+        <p class="body">Hướng tới chuẩn mực LEED Gold, ABI Tower tiên phong ứng dụng các giải pháp công nghệ bền vững cùng hơn 15% diện tích cảnh quan xanh với đa dạng hệ thực vật, tạo dựng môi trường làm việc tối ưu cho sức khỏe của nhân viên và hiện thực hóa các mục tiêu ESG dài hạn của tòa tháp</p>
+      </div>
+    </div>
   </div>
-  <figure class="green-media"><img src="../assets/img/garden.webp" alt="Cảnh quan xanh tại ABI Tower" loading="lazy"></figure>
 </section>
 
 <section class="news" id="tin-tuc">
@@ -225,6 +234,7 @@
   <li><a href="mailto:sales@catgojsc.com" aria-label="Email"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6 8.5 7 8.5-7"/></svg></a></li>
   <li><a href="https://zalo.me/0829898389" target="_blank" rel="noopener" aria-label="Zalo"><span class="zalo">Zalo</span></a></li>
   <li><a href="#" data-demo="Link LinkedIn sẽ được cập nhật" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 10v7M8 7v.01M12 17v-4a2 2 0 0 1 4 0v4M12 10v7"/></svg></a></li>
+  <li class="dock-toggle"><button type="button" aria-expanded="false" aria-label="Liên hệ nhanh"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="dt-open" d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4h0A2.5 2.5 0 0 1 4 13.5z"/><path class="dt-close" d="M6 6l12 12M18 6 6 18"/></svg></button></li>
 </ul>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 

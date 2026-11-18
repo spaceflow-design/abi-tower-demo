@@ -57,7 +57,7 @@ ABI.stack = {
     {
       id: "f1", floors: ["1"], tag: "1F", type: "lobby",
       title: "Tầng 1F - Sảnh đón tích hợp Cà phê ngoài trời",
-      nla: "950.1 sqm",
+      nla: "422 sqm",
       desc: "Sảnh đón khách kết nối trực tiếp với quảng trường ngoài trời, nổi bật cùng đài phun nước hologram công nghệ cao và cụm điêu khắc kiến trúc \"The Cloud\". Khu vực cà phê ngoài trời đan xen nhiều mảng xanh, tạo nên một không gian thoáng đãng, ấn tượng ngay từ điểm chạm đầu tiên.",
       plan: "f1.webp"
     },
@@ -85,7 +85,11 @@ ABI.initSmooth = function () {
   gsap.registerPlugin(ScrollTrigger);
   let lenis = null;
   if (!ABI.reduceMotion && typeof Lenis !== "undefined") {
-    lenis = new Lenis({ duration: 1.1, smoothWheel: true });
+    lenis = new Lenis({
+      duration: 1.1, smoothWheel: true,
+      // horizontal trackpad swipes over a sideways scroller (the smart-tech slider) belong to that scroller
+      virtualScroll: d => !(d.event && d.event.target && d.event.target.closest && d.event.target.closest(".tech-view") && Math.abs(d.deltaX) > Math.abs(d.deltaY))
+    });
     lenis.on("scroll", ScrollTrigger.update);
     gsap.ticker.add(t => lenis.raf(t * 1000));
     gsap.ticker.lagSmoothing(0);

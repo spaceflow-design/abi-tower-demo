@@ -41,7 +41,8 @@
 
 <main>
 <section class="phero" id="top">
-  <div class="phero-bg"><img src="../assets/img/ext-up.webp" alt="" style="object-position:50% 30%"></div>
+  <div class="phero-sky" aria-hidden="true"><i class="ps1"></i><i class="ps2"></i><i class="ps3"></i><i class="ps4"></i></div>
+  <div class="phero-grid" aria-hidden="true"><i class="phero-scan"></i></div>
   <svg class="pattern phero-pattern" aria-hidden="true"></svg>
   <div class="phero-in">
     <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Trang chủ</a><i aria-hidden="true">/</i><span aria-current="page">Thiết kế thông minh</span></nav>
@@ -50,30 +51,39 @@
   <div class="phero-scroll" aria-hidden="true"><span></span></div>
 </section>
 
-<section class="award-hl dark">
-  <svg class="pattern pattern-fade" aria-hidden="true"></svg>
-  <div class="award-hl-copy" data-reveal>
-    <p class="eyebrow"><span class="num">01</span></p>
-    <h2 class="h2">Best Smart Commercial 2026</h2>
-    <p class="body">ABI Tower tự hào được vinh danh tại hạng mục Best Smart Commercial Development tại giải thưởng danh giá PropertyGuru Vietnam Property Awards 2026. Danh hiệu này là bảo chứng cho năng lực tích hợp công nghệ vượt trội của dự án, mang đến một môi trường làm việc thông minh, sẵn sàng đồng hành cùng các doanh nghiệp tiên phong.</p>
-    <img class="award-hl-badge" src="../assets/img/award-pg.webp" alt="Logo giải thưởng Best Smart Commercial Development — PropertyGuru Vietnam Property Awards 2026">
-  </div>
+<section class="award-hl">
   <figure class="award-hl-media" data-slides>
     <div class="slides-in">
       <img src="../assets/img/award-night.webp" alt="ABI Tower nhận giải Best Smart Commercial Development" loading="lazy">
+      <img src="../assets/img/award-stage.webp" alt="Sân khấu lễ trao giải PropertyGuru Vietnam Property Awards 2026" loading="lazy">
       <img src="../assets/img/award-ceremony.webp" alt="Đại diện ABI Tower tại lễ trao giải PropertyGuru Vietnam Property Awards 2026" loading="lazy">
+      <img src="../assets/img/award-winners.webp" alt="Đại diện ABI Tower nhận cúp và chứng nhận giải thưởng" loading="lazy">
+      <img src="../assets/img/award-host.webp" alt="Lễ trao giải PropertyGuru Vietnam Property Awards 2026" loading="lazy">
     </div>
     <div class="slides-dots" aria-hidden="true"></div>
   </figure>
+  <div class="award-hl-badge"><img src="../assets/img/award-pg.webp" alt="Logo giải thưởng Best Smart Commercial Development — PropertyGuru Vietnam Property Awards 2026"><i class="badge-shine" aria-hidden="true"></i></div>
+  <div class="award-hl-copy">
+    <p class="eyebrow"><span class="num">01</span></p>
+    <h2 class="h2">Best Smart Commercial 2026</h2>
+    <p class="body">ABI Tower tự hào được vinh danh tại hạng mục Best Smart Commercial Development tại giải thưởng danh giá PropertyGuru Vietnam Property Awards 2026. Danh hiệu này là bảo chứng cho năng lực tích hợp công nghệ vượt trội của dự án, mang đến một môi trường làm việc thông minh, sẵn sàng đồng hành cùng các doanh nghiệp tiên phong.</p>
+  </div>
 </section>
 
 <section class="tech" id="cong-nghe">
-  <div class="tech-pin">
-    <div class="tech-head" data-reveal>
-      <p class="eyebrow"><span class="num">02</span></p>
-      <h2 class="h2">Giải pháp công nghệ thông minh</h2>
-      <div class="tech-progress" aria-hidden="true"><i></i></div>
+  <div class="tech-in">
+    <div class="tech-head">
+      <div>
+        <p class="eyebrow"><span class="num">02</span></p>
+        <h2 class="h2">Giải pháp công nghệ thông minh</h2>
+      </div>
+      <div class="tech-nav">
+        <button type="button" class="tech-btn" data-dir="-1" aria-label="Ảnh trước"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="tech-progress" aria-hidden="true"><i></i></div>
+        <button type="button" class="tech-btn" data-dir="1" aria-label="Ảnh tiếp theo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
     </div>
+    <div class="tech-view">
     <ol class="tech-track">
       <li class="tech-card">
         <figure><img src="../assets/img/lift-car.webp" alt="" loading="lazy"></figure>
@@ -106,6 +116,7 @@
         <p>Hệ thống an ninh tích hợp camera AI &amp; Hệ thống báo cháy và chữa cháy tự động</p>
       </li>
     </ol>
+    </div>
   </div>
 </section>
 
@@ -250,6 +261,7 @@
   <li><a href="mailto:sales@catgojsc.com" aria-label="Email"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6 8.5 7 8.5-7"/></svg></a></li>
   <li><a href="https://zalo.me/0829898389" target="_blank" rel="noopener" aria-label="Zalo"><span class="zalo">Zalo</span></a></li>
   <li><a href="#" data-demo="Link LinkedIn sẽ được cập nhật" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 10v7M8 7v.01M12 17v-4a2 2 0 0 1 4 0v4M12 10v7"/></svg></a></li>
+  <li class="dock-toggle"><button type="button" aria-expanded="false" aria-label="Liên hệ nhanh"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="dt-open" d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4h0A2.5 2.5 0 0 1 4 13.5z"/><path class="dt-close" d="M6 6l12 12M18 6 6 18"/></svg></button></li>
 </ul>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 

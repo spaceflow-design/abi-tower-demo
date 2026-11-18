@@ -47,7 +47,7 @@
   document.querySelectorAll(".pattern").forEach(svg => {
     const fills = ABI.buildPattern(svg);
     if (svg.classList.contains("hero-pattern")) {
-      gsap.to(fills, { opacity: () => gsap.utils.random([.1, .2, .32]), duration: 1.6, stagger: { each: .03, from: "random", repeat: -1, yoyo: true, repeatDelay: 1.2 }, ease: "sine.inOut" });
+      ABI.reduceMotion || gsap.to(fills, { opacity: () => gsap.utils.random([.1, .2, .32]), duration: 1.6, stagger: { each: .03, from: "random", repeat: -1, yoyo: true, repeatDelay: 1.2 }, ease: "sine.inOut" });
     } else {
       gsap.to(fills, {
         opacity: () => gsap.utils.random([.3, .55, .85]), stagger: { each: .02, from: "random" }, ease: "none",
@@ -82,12 +82,20 @@
   // the hero and steps aside at the footer (same buttons there). Live positions on every scroll so
   // reloads, anchor jumps and the very bottom of the page all get the right state.
   const dock = document.querySelector(".dock");
+  // tablets/phones: one toggle opens the four contact buttons; tap outside or Esc closes them
+  const dockBtn = dock && dock.querySelector(".dock-toggle button");
+  const setDock = open => { dock.classList.toggle("is-open", open); dockBtn.setAttribute("aria-expanded", open); };
+  if (dockBtn) {
+    dockBtn.addEventListener("click", e => { e.stopPropagation(); setDock(!dock.classList.contains("is-open")); });
+    document.addEventListener("click", e => dock.classList.contains("is-open") && !dock.contains(e.target) && setDock(false));
+    document.addEventListener("keydown", e => e.key === "Escape" && dock.classList.contains("is-open") && setDock(false));
+  }
   const heroEl = document.querySelector(".hero, .phero"), ftrEl = document.querySelector(".ftr");
   const syncChrome = () => {
     const vh = window.innerHeight, heroBottom = heroEl ? heroEl.getBoundingClientRect().bottom : 0, ftrTop = ftrEl.getBoundingClientRect().top;
     hdr.classList.toggle("is-solid", heroBottom <= 80);
     const dockOn = heroBottom <= vh * .6 && ftrTop > vh * .9;
-    if (dock) { dock.classList.toggle("is-on", dockOn); dock.inert = !dockOn; }   // hidden dock: out of the tab order
+    if (dock) { dock.classList.toggle("is-on", dockOn); dock.inert = !dockOn; dockOn || (dockBtn && setDock(false)); }   // hidden dock: out of the tab order
   };
   window.addEventListener("scroll", syncChrome, { passive: true });
   window.addEventListener("resize", syncChrome);
@@ -107,6 +115,7 @@
       otherBox.classList.toggle("is-on", otherCheck.checked);
       otherInput.disabled = !otherCheck.checked;
       if (otherCheck.checked && focus) setTimeout(() => otherInput.focus({ preventScroll: true }), 250);
+      ABI.refreshSoon && ABI.refreshSoon(500);
     };
     otherCheck.addEventListener("change", () => syncOther(true));
     form.addEventListener("submit", e => {
@@ -125,6 +134,7 @@
         msg.classList.add("is-err");
         msg.textContent = "Vui lòng điền đủ các mục có dấu *";
         (bad[0] || checks.querySelector("input")).focus();
+        ABI.refreshSoon && ABI.refreshSoon(300);
         return;
       }
       msg.classList.add("is-ok");
@@ -136,7 +146,7 @@
 
   /* ---------- auto slideshow (no controls): cross-fades the <img>s inside [data-slides] ---------- */
   ABI.slideshow = function (host, every = 4.2) {
-    const slides = [...host.querySelectorAll("img")];
+    const slides = [...host.querySelectorAll(".slides-in > img")];   // only the slides, not logos laid over them
     if (slides.length < 2) return;
     let i = 0;
     gsap.set(slides, { autoAlpha: 0 });

@@ -41,7 +41,8 @@
 
 <main>
 <section class="phero" id="top">
-  <div class="phero-bg"><img src="../assets/img/office-open.webp" alt="" style="object-position:50% 50%"></div>
+  <div class="phero-sky" aria-hidden="true"><i class="ps1"></i><i class="ps2"></i><i class="ps3"></i><i class="ps4"></i></div>
+  <div class="phero-grid" aria-hidden="true"><i class="phero-scan"></i></div>
   <svg class="pattern phero-pattern" aria-hidden="true"></svg>
   <div class="phero-in">
     <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Trang chủ</a><i aria-hidden="true">/</i><span aria-current="page">Văn phòng</span></nav>
@@ -58,7 +59,7 @@
     <dl class="vstack-stats" id="stackStats"></dl>
   </div>
   <div class="vstack-iso">
-    <svg class="iso" id="iso" viewBox="0 0 560 720" role="group" aria-label="Sơ đồ tầng ABI Tower"></svg>
+    <svg class="iso" id="iso" viewBox="0 64 560 600" role="group" aria-label="Sơ đồ tầng ABI Tower"></svg>
   </div>
   <div class="vstack-list">
     <p class="iso-hint"><span aria-hidden="true">☝</span> Chọn tầng để xem diện tích cho thuê</p>
@@ -78,7 +79,7 @@
       <li><a href="#mb-f2"><b>2F</b></a></li>
       <li><a href="#mb-f3-5"><b>3F – 5F</b></a></li>
       <li><a href="#mb-f6-9"><b>6F – 9F</b></a></li>
-      <li><a href="#mb-f12"><b>12F</b></a></li>
+      <li><a href="#mb-f10-13"><b>10F – 13F</b></a></li>
       <li><a href="#mb-rf"><b>Rooftop</b></a></li>
       </ol>
     </nav>
@@ -87,7 +88,7 @@
       <div class="fl-info" data-reveal>
         <span class="fl-tag">1F</span>
         <h3>Tầng 1F - Sảnh đón tích hợp Cà phê ngoài trời</h3>
-        <p class="fp-nla">Diện tích cho thuê: 950.1 sqm</p>
+        <p class="fp-nla">Diện tích cho thuê: 422 sqm</p>
         <p class="fl-desc">Sảnh đón khách kết nối trực tiếp với quảng trường ngoài trời, nổi bật cùng đài phun nước hologram công nghệ cao và cụm điêu khắc kiến trúc "The Cloud". Khu vực cà phê ngoài trời đan xen nhiều mảng xanh, tạo nên một không gian thoáng đãng, ấn tượng ngay từ điểm chạm đầu tiên.</p>
         <figure class="fl-photo"><img src="../assets/img/lobby.webp" alt="" loading="lazy"></figure>
       </div>
@@ -135,16 +136,16 @@
       </figure>
       <ul class="fp-legend" data-leg="office"></ul>
     </article>
-    <article class="fl-block" id="mb-f12">
+    <article class="fl-block" id="mb-f10-13">
       <div class="fl-info" data-reveal>
-        <span class="fl-tag">12F</span>
-        <h3>Tầng 12F - Tầng văn phòng điển hình</h3>
+        <span class="fl-tag">10F – 13F</span>
+        <h3>Tầng 10F-13F: Văn phòng</h3>
         <p class="fp-nla">Diện tích cho thuê: 816.5sqm</p>
         <p class="fl-desc">Khu văn phòng cao tầng sở hữu tầm nhìn thoáng đãng và ánh sáng tự nhiên từ mặt kính hướng Bắc, kết hợp cùng hạ tầng quản trị thông minh mang đến không gian làm việc tiện nghi và tối ưu hiệu suất.</p>
         <figure class="fl-photo"><img src="../assets/img/office.webp" alt="" loading="lazy"></figure>
       </div>
       <figure class="fl-plan">
-        <img src="../assets/plans/v-10-13f.webp" alt="Mặt bằng Tầng 12F - Tầng văn phòng điển hình" width="1216" height="759" loading="lazy">
+        <img src="../assets/plans/v-10-13f.webp" alt="Mặt bằng Tầng 10F-13F: Văn phòng" width="1216" height="759" loading="lazy">
       </figure>
       <ul class="fp-legend" data-leg="office"></ul>
     </article>
@@ -267,6 +268,7 @@
   <li><a href="mailto:sales@catgojsc.com" aria-label="Email"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3.5 6 8.5 7 8.5-7"/></svg></a></li>
   <li><a href="https://zalo.me/0829898389" target="_blank" rel="noopener" aria-label="Zalo"><span class="zalo">Zalo</span></a></li>
   <li><a href="#" data-demo="Link LinkedIn sẽ được cập nhật" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 10v7M8 7v.01M12 17v-4a2 2 0 0 1 4 0v4M12 10v7"/></svg></a></li>
+  <li class="dock-toggle"><button type="button" aria-expanded="false" aria-label="Liên hệ nhanh"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="dt-open" d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 4v-4h0A2.5 2.5 0 0 1 4 13.5z"/><path class="dt-close" d="M6 6l12 12M18 6 6 18"/></svg></button></li>
 </ul>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
