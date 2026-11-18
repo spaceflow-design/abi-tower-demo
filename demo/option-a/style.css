@@ -74,6 +74,11 @@ ol, ul { list-style: none; }
   color: var(--navy); text-wrap: balance;
 }
 .body { font-size: clamp(14px, 1vw, 16px); color: var(--muted); max-width: 52ch; }
+/* Line breaking (client 18/11: "chữ bị rơi"): headings and short labels split into even lines, and running
+   text never drops a lone word onto its last line. Browsers without text-wrap simply wrap as before. */
+h1, h2, h3, h4, h5, h6, dt, legend, figcaption, label, .btn, .eyebrow { text-wrap: balance; }
+p, li, dd { text-wrap: pretty; }
+.nowrap { white-space: nowrap; }   /* e.g. "Low-E": never split at the hyphen */
 
 /* dark (deep navy) sections */
 .dark { background: var(--deep); color: #fff; }
@@ -192,9 +197,11 @@ ol, ul { list-style: none; }
 }
 .hero-title .line { display: block; white-space: nowrap; }
 .hero-title .wd { display: inline-block; white-space: nowrap; }
-.hero-title .ch { display: inline-block; will-change: transform, opacity, filter; }
+.hero-title .ch { display: inline-block; will-change: transform, opacity, filter; margin-right: var(--k, 0em); }   /* --k: kerning, see ABI.kernSplit */
 /* gradient per character (main.js sets background-size/position so the line reads as one sweep) */
-.hero-title .grad .ch { background-image: linear-gradient(90deg, #7fd8f8 0%, #00aeef 55%, #6f86ff 100%); -webkit-background-clip: text; background-clip: text; color: transparent; padding-bottom: .12em; margin-bottom: -.12em; }
+/* background-clip:text only paints inside each letter's box, and the horn of ư/ơ and the stacked Vietnamese
+   marks reach past it, so pad the box on every side (negative margins keep the layout unchanged) */
+.hero-title .grad .ch { background-image: linear-gradient(90deg, #7fd8f8 0%, #00aeef 55%, #6f86ff 100%); -webkit-background-clip: text; background-clip: text; color: transparent; padding: .3em .2em .2em; margin: -.3em calc(var(--k, 0em) - .2em) -.2em -.2em; }
 .hero-f2 { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
 .hero-tower {
   --th: calc(100 * var(--vh) - 128px);
@@ -455,6 +462,7 @@ ol, ul { list-style: none; }
   display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; padding: 8px 16px; border-radius: 999px;
   background: rgba(0,174,239,.1); color: var(--navy); font-family: var(--f-display); font-size: clamp(14px, 1.05vw, 16px); font-weight: 500;
 }
+.iso-hint .hint-ico { flex: none; color: var(--blue); }   /* SVG, not ☝: no brand font has that glyph */
 .iso .grp { cursor: pointer; outline: none; }
 .iso .fl polygon { stroke: var(--navy); stroke-width: 1; stroke-linejoin: round; transition: fill .35s; }
 .iso .fl .fz-l { fill: #eaf1fa; }
@@ -658,7 +666,7 @@ ol, ul { list-style: none; }
   margin-top: clamp(24px, 2.4vw, 32px); padding-top: 16px; border-top: 1px solid rgba(255,255,255,.12); font-size: 13px;
 }
 .ftr-end { display: flex; align-items: center; gap: 8px; }
-.to-top { position: relative; width: 38px; height: 38px; margin-left: 14px; display: grid; place-items: center; border-radius: 50%; border: 1px solid rgba(255,255,255,.22); color: #fff; transition: background .25s, color .25s; }
+.to-top { position: relative; width: 38px; height: 38px; margin-left: 14px; display: grid; place-items: center; border-radius: 50%; border: 1px solid rgba(255,255,255,.22); color: #fff; font-family: var(--f-display); transition: background .25s, color .25s; }   /* Raleway has no ↑ */
 .to-top::before { content: ""; position: absolute; left: -12px; top: 8px; bottom: 8px; width: 1px; background: rgba(255,255,255,.18); pointer-events: none; }
 .to-top:hover { background: #fff; color: var(--navy); }
 

@@ -39,11 +39,11 @@
 .crumbs i { font-style: normal; opacity: .5; }
 .crumbs [aria-current] { color: #fff; }
 .phero-title {
-  font-family: var(--f-display); font-weight: 600; font-size: clamp(38px, 5.6vw, 92px); line-height: 1.05; letter-spacing: -.03em;
+  font-family: var(--f-display); font-weight: 600; font-size: clamp(38px, 5.6vw, 92px); line-height: 1.14; letter-spacing: -.03em;   /* room for stacked marks (ồ, ở) under a descender above */
   max-width: 18ch; text-wrap: balance; text-shadow: 0 10px 40px rgba(11,14,42,.35);
 }
 .phero-title .wd { display: inline-block; white-space: nowrap; }
-.phero-title .ch { display: inline-block; }
+.phero-title .ch { display: inline-block; margin-right: var(--k, 0em); }   /* --k: kerning, see ABI.kernSplit */
 .phero-sub { margin-top: clamp(18px, 2.6 * var(--vh), 28px); max-width: 60ch; font-size: clamp(15px, 1.25vw, 19px); line-height: 1.6; color: rgba(255,255,255,.86); text-wrap: balance; }
 .phero-scroll { position: absolute; left: 50%; bottom: clamp(28px, 5 * var(--vh), 48px); width: 1px; height: 64px; margin-left: -.5px; background: rgba(35,41,96,.18); overflow: hidden; }
 .phero-scroll span { position: absolute; left: 0; top: -40%; width: 1px; height: 40%; background: var(--blue); animation: pheroCue 1.9s var(--ease) infinite; }
@@ -97,7 +97,9 @@
 .partner-copy .body + .body { margin-top: 12px; }
 
 /* kinetic headings on the subpages: words rise out of a mask */
-.kw { display: inline-block; overflow: hidden; vertical-align: top; padding: .14em 0 .08em; margin: -.14em 0 -.08em; }
+/* the mask is padded on all sides so stacked marks (Ễ, Ổ), the dot below (ạ) and the horn of ư/ơ stay inside it;
+   matching negative margins keep the words where they were */
+.kw { display: inline-block; overflow: hidden; vertical-align: top; padding: .24em .2em .16em; margin: -.24em -.2em -.16em; }
 .kwi { display: inline-block; will-change: transform; }
 
 /* ==========================================================================
@@ -187,6 +189,7 @@
 .vstack-stats div:nth-child(3n + 1) { padding-left: 0; border-left: 0; }
 .vstack-stats div:nth-child(n + 4) { grid-column: span 3; padding-left: 0; border-left: 0; padding-top: 14px; border-top: 1px solid var(--line); }
 .vstack-stats dt { font-size: 12.5px; color: var(--muted); }
+.vstack-stats div:nth-child(-n + 3) dt { white-space: nowrap; }   /* "Tầng hầm" stays on one line in the narrow columns */
 .vstack-stats dd { font-family: var(--f-display); font-weight: 500; font-size: clamp(24px, 2.2vw, 36px); line-height: 1.1; color: var(--navy); white-space: nowrap; }
 .vstack-stats dd small { font-size: .5em; margin-left: 3px; color: var(--muted); }
 .vstack-iso { display: grid; place-items: center; }
@@ -264,6 +267,16 @@
   font-family: var(--f-display); font-weight: 500; font-size: 16px; line-height: 1.25; transition: font-size .6s var(--ease);
 }
 .am-panel.is-open h3 { font-size: clamp(22px, 2.2vw, 34px); }
+/* tablets: the closed panels are only ~90–120px wide and their titles broke one word per line ("Khu vực /
+   chung / tầng / thượng"), so a closed panel sets its title on one vertical line; the open one reads across.
+   Each state fades in under its own keyframe name, so switching panels replays it. (Phones stack the panels.) */
+@media (min-width: 721px) and (max-width: 1100px) {
+  .am-panel h3 { left: 14px; right: 14px; bottom: 16px; font-size: 14px; }
+  .am-panel:not(.is-open) h3 { right: auto; writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; max-height: calc(100% - 72px); overflow: hidden; text-overflow: ellipsis; animation: amTitleA .5s .25s both; }
+  .am-panel.is-open h3 { animation: amTitleB .6s .4s both; }
+}
+@keyframes amTitleA { from { opacity: 0; } }
+@keyframes amTitleB { from { opacity: 0; } }
 .am-panel:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
 
 /* sustainability */

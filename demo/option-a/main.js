@@ -36,7 +36,7 @@
     cs.forEach((c, i) => { c.style.backgroundSize = `${x1 - x0}px 100%`; c.style.backgroundPosition = `${x0 - rs[i].left}px 0`; });
   }
   paintGrad();
-  document.fonts && document.fonts.ready.then(paintGrad);
+  ABI.kernSplit(heroTitle).then(paintGrad);   // kerning shifts the letters → paint the sweep after it
   window.addEventListener("resize", paintGrad);
 
   const frameBtns = [...document.querySelectorAll(".hero-frames button")];

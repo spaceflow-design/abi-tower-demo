@@ -15,6 +15,29 @@
   ABI.svgEl = el;
   ABI.pts = pts;
 
+  /* ---------- titles split into one box per letter lose the font's kerning ("Tr" opens up by ~.05em);
+     measure each pair once the font is in and give it back through --k (CSS adds it to margin-right) ---------- */
+  ABI.kernSplit = function (root) {
+    const first = root && root.querySelector(".ch");
+    if (!first) return Promise.resolve();
+    const cs = getComputedStyle(first);
+    const font = `${cs.fontStyle} ${cs.fontWeight} 100px ${cs.fontFamily}`;
+    const apply = () => {
+      const c = document.createElement("canvas").getContext("2d");
+      c.font = font;
+      const w = s => c.measureText(s).width;
+      root.querySelectorAll(".wd").forEach(wd => {
+        const chs = [...wd.querySelectorAll(".ch")];
+        chs.forEach((ch, i) => {
+          const nx = chs[i + 1];
+          const k = nx ? w(ch.textContent + nx.textContent) - w(ch.textContent) - w(nx.textContent) : 0;
+          ch.style.setProperty("--k", Math.abs(k) > .3 ? (k / 100).toFixed(4) + "em" : "0em");
+        });
+      });
+    };
+    return (document.fonts ? document.fonts.load(font) : Promise.resolve()).then(apply, apply);
+  };
+
   /* ---------- toast + demo links ---------- */
   const toastEl = $("toast");
   let toastT;
@@ -274,4 +297,6 @@
   ABI.refreshSoon = (ms = 250) => { clearTimeout(refreshT); refreshT = setTimeout(() => ScrollTrigger.refresh(), ms); };
   document.querySelectorAll('img[loading="lazy"]').forEach(img => img.complete || img.addEventListener("load", () => ABI.refreshSoon(), { once: true }));
   window.addEventListener("load", () => ScrollTrigger.refresh());
+  // a late brand-font swap re-wraps every text block → re-measure the triggers once the fonts are in
+  document.fonts && document.fonts.ready.then(() => ABI.refreshSoon(100));
 })();
