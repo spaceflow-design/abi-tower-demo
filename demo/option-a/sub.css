@@ -58,13 +58,15 @@
 .plans-head, .am-head, .process-head, .cond-head, .concept-head, .contact-head { max-width: 1440px; margin: 0 auto clamp(30px, 4vw, 56px); }
 
 /* ==========================================================================
-   VỀ CHÚNG TÔI — three partners, photo + logo tile / copy, alternating
+   VỀ CHÚNG TÔI — four partners, photo + logo tile / copy, alternating
    ========================================================================== */
 .team { position: relative; display: grid; gap: clamp(90px, 11vw, 170px); overflow-x: clip; }   /* the module patches may poke past the gutter on phones */
 /* progress rail in the left gutter: fills as the reader moves through the three partners */
 .team-rail { position: absolute; left: calc(var(--gutter) / 2); top: clamp(80px, 9vw, 140px); bottom: clamp(80px, 9vw, 140px); width: 1px; background: var(--line); }
 .team-rail i { position: absolute; inset: 0; background: linear-gradient(180deg, var(--cyan), var(--blue)); transform: scaleY(0); transform-origin: top; }
-.partner { width: 100%; max-width: 1440px; margin: 0 auto; display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(40px, 7vw, 120px); align-items: center; }
+/* client 19/11: smaller photos and logo tiles, then rebalanced — photo column 5 : copy 6, narrower row */
+.partner { width: 100%; max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(40px, 6vw, 110px); align-items: center; }
+.partner.is-flip { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); }   /* photo stays in the 5-part column */
 .partner.is-flip .partner-media { order: 2; }
 .partner-media { position: relative; isolation: isolate; }
 /* brand-module patch behind the photo; a few modules flicker like data */
@@ -79,15 +81,18 @@
 /* logo tile with a slowly turning light around its edge */
 @property --spin { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
 .partner-logo {
-  position: absolute; right: clamp(-36px, -2.4vw, -16px); bottom: clamp(-36px, -2.4vw, -16px); width: clamp(170px, 17vw, 250px); aspect-ratio: 4 / 3;
-  display: grid; place-items: center; padding: clamp(18px, 1.8vw, 28px); border-radius: 22px; isolation: isolate; box-shadow: 0 24px 60px -30px rgba(35,41,96,.55);
+  position: absolute; right: clamp(-30px, -2vw, -14px); bottom: clamp(-30px, -2vw, -14px); width: clamp(140px, 12.5vw, 190px); aspect-ratio: 4 / 3;
+  display: grid; place-items: center; padding: clamp(14px, 1.4vw, 22px); border-radius: 20px; isolation: isolate; box-shadow: 0 24px 60px -30px rgba(35,41,96,.55);
 }
 .partner-logo::before { content: ""; position: absolute; inset: 0; z-index: -2; border-radius: inherit; background: conic-gradient(from var(--spin), rgba(0,174,239,0) 0deg, rgba(0,174,239,.9) 70deg, rgba(33,64,154,.9) 120deg, rgba(33,64,154,0) 170deg, rgba(0,174,239,0) 360deg); animation: tileSpin 6s linear infinite; }
-.partner-logo::after { content: ""; position: absolute; inset: 2px; z-index: -1; border-radius: 20px; background: #fff; }
+.partner-logo::after { content: ""; position: absolute; inset: 2px; z-index: -1; border-radius: 18px; background: #fff; }
 @keyframes tileSpin { to { --spin: 360deg; } }
-.partner-logo img { width: 100%; height: 100%; object-fit: contain; }
-.partner.is-flip .partner-logo { right: auto; left: clamp(-36px, -2.4vw, -16px); }
-.partner-copy { position: relative; }
+/* every logo carries the same visual weight. --lw (set per logo in the HTML, share of the tile's inner width) starts
+   from equal area, k·√(aspect) with k = .5, then is tuned by eye: Savills smaller (solid block), ACECONS larger
+   (its icon sits above the wordmark), HPA a touch smaller (heavy black type) */
+.partner-logo img { width: var(--lw, 70%); height: auto; max-height: 100%; object-fit: contain; }
+.partner.is-flip .partner-logo { right: auto; left: clamp(-30px, -2vw, -14px); }
+.partner-copy { position: relative; z-index: 1; }   /* the next row's brand-pattern patch never paints over this text */
 .partner-idx {
   position: absolute; z-index: -1; right: 0; top: -.62em; font-family: var(--f-display); font-weight: 600; font-size: clamp(110px, 13vw, 210px); line-height: 1;
   color: transparent; -webkit-text-stroke: 1px rgba(33,64,154,.16); pointer-events: none; user-select: none;
@@ -318,13 +323,19 @@
 .step.is-on .step-n { background: linear-gradient(135deg, var(--blue), var(--cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .step-t { font-family: var(--f-display); font-weight: 500; font-size: clamp(17px, 1.5vw, 23px); line-height: 1.25; color: rgba(35,41,96,.55); transition: color .3s; }
 .step.is-on .step-t, .step-head:hover .step-t { color: var(--navy); }
-.step-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .55s var(--ease); }
-.step.is-on .step-body { grid-template-rows: 1fr; }
+/* a closed step is also hidden from Tab (its links stay out of reach until it opens; visibility flips after the fold) */
+.step-body { display: grid; grid-template-rows: 0fr; visibility: hidden; transition: grid-template-rows .55s var(--ease), visibility 0s .55s; }
+.step.is-on .step-body { grid-template-rows: 1fr; visibility: visible; transition: grid-template-rows .55s var(--ease); }
 .step-body > div { overflow: hidden; padding-left: calc(clamp(52px, 5vw, 76px) + 16px); }
 .step-body p { font-size: 15px; color: var(--muted); max-width: 58ch; padding-bottom: 16px; }
 .step-links { display: flex; flex-wrap: wrap; gap: 8px; margin: -4px 0 18px; }
 .step-links a { display: inline-flex; gap: 6px; padding: 9px 16px; border-radius: 999px; background: var(--navy); color: #fff; font-family: var(--f-display); font-size: 13.5px; transition: background .25s; }
 .step-links a:hover { background: var(--blue); }
+/* "Đăng ký tham quan tại đây" (client 19/11): "tại đây" is a small button that takes the reader down to the form */
+.btn-inline { display: inline-flex; align-items: center; gap: 6px; margin-left: 2px; padding: 3px 11px 3px 13px; border-radius: 999px; background: var(--navy); color: #fff; font-family: var(--f-display); font-size: 13.5px; font-weight: 500; line-height: 1.5; white-space: nowrap; transition: background .25s; }
+.btn-inline svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: transform .3s var(--ease); }
+.btn-inline:hover, .btn-inline:focus-visible { background: var(--blue); }
+.btn-inline:hover svg { transform: translateY(2px); }
 .step-links span { opacity: .65; }
 .step-bar { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: linear-gradient(90deg, var(--blue), var(--cyan)); transform: scaleX(0); transform-origin: left; pointer-events: none; }
 .process-media { position: relative; min-height: 360px; border-radius: var(--r-lg); overflow: hidden; background: var(--ice); }
@@ -381,7 +392,8 @@
    ========================================================================== */
 /* portrait tablets and narrow windows; landscape tablets keep the desktop layouts (fit one screen) */
 @media (max-width: 1100px) and (orientation: portrait), (max-width: 900px) {
-  .partner { grid-template-columns: 1fr 1fr; gap: 48px; }
+  .partner, .partner.is-flip { grid-template-columns: 1fr 1fr; gap: 48px; }
+  .team { gap: 112px; }   /* the next row's pattern patch stays clear of the text above it */
   .highlights { grid-template-columns: 1fr; }
   .award-hl { grid-template-columns: 1fr; }
   .award-hl > .award-hl-copy { grid-column: 1; grid-row: 2; max-width: 720px; }
@@ -418,9 +430,9 @@
   .phero-in { padding-top: 120px; padding-bottom: 120px; }
   .crumbs { margin-bottom: 16px; font-size: 11px; }
   .team { gap: 90px; }
-  .partner { grid-template-columns: 1fr; gap: 56px; }
+  .partner, .partner.is-flip { grid-template-columns: 1fr; gap: 56px; }
   .partner.is-flip .partner-media { order: 0; }
-  .partner-logo, .partner.is-flip .partner-logo { right: 14px; left: auto; bottom: -34px; width: 160px; }
+  .partner-logo, .partner.is-flip .partner-logo { right: 14px; left: auto; bottom: -30px; width: 136px; }
   .team-rail { display: none; }
   .partner-deco { width: 96px; }
   .partner-idx { font-size: 96px; top: -.5em; }
