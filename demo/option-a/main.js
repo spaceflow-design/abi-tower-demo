@@ -23,7 +23,7 @@
   heroTitle && heroTitle.setAttribute("aria-label", heroTitle.textContent.trim().replace(/\s+/g, " "));
   document.querySelectorAll(".hero-title [data-chars]").forEach(line => {
     line.setAttribute("aria-hidden", "true");
-    const words = line.textContent.trim().normalize("NFC").split(/\s+/);
+    const words = line.textContent.trim().normalize("NFC").split(/[^\S\u00a0]+/);   // keep no-break spaces (ABI.keepWords) inside a word
     line.innerHTML = words.map(w => `<span class="wd">${Array.from(w).map(c => `<span class="ch">${c}</span>`).join("")}</span>`).join(" ");
     chars.push(...line.querySelectorAll(".ch"));
   });

@@ -9,7 +9,7 @@
   if (title) {
     const text = title.textContent.trim().normalize("NFC");
     title.setAttribute("aria-label", text);          // one readable name; the split letters are hidden from AT
-    title.innerHTML = `<span aria-hidden="true">${text.split(/\s+/).map(w => `<span class="wd">${Array.from(w).map(c => `<span class="ch">${c}</span>`).join("")}</span>`).join(" ")}</span>`;
+    title.innerHTML = `<span aria-hidden="true">${text.split(/[^\S\u00a0]+/).map(w => `<span class="wd">${Array.from(w).map(c => `<span class="ch">${c}</span>`).join("")}</span>`).join(" ")}</span>`;
     ABI.kernSplit(title);
     const tl = gsap.timeline({ delay: .05 });
     tl.fromTo(".phero-sky", { opacity: 0, scale: 1.15 }, { opacity: 1, scale: 1, duration: 1.8, ease: "expo.out" }, 0)
