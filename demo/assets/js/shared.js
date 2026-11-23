@@ -183,7 +183,7 @@ ABI.WORDS = [
   "tập trung", "tập đoàn", "Tọa lạc", "tốc độ", "tối đa", "tối ưu", "tổ hợp", "Tổng thầu", "tổng thể", "Tự Do",
   "tự hào", "tự nhiên", "tự động", "uy tín", "uốn lượn", "vinh danh", "Việt Nam", "Vui lòng", "Vành đai", "Vành đai 2",
   "Vành đai 3", "Vách ngăn", "Văn phòng", "vượt trội", "vận hành", "vị thế", "Vị trí", "xe máy", "xe điện", "Xuân Tảo",
-  "Xuân Đỉnh", "Xuất phát", "xây dựng", "yêu cầu", "ánh sáng", "Ô H2CC2", "ý tưởng", "đa dạng", "Đa khoa", "đa năng",
+  "Xuân Đỉnh", "Xuất phát", "xây dựng", "yêu cầu", "ánh sáng", "Ô H2CC2", "ý tưởng", "ô tô", "đa dạng", "Đa khoa", "đa năng",
   "đa tầng", "đan xen", "điêu khắc", "điều chỉnh", "điều hòa", "điều hướng", "điều khiển", "điều khoản", "Điều kiện", "điểm chạm",
   "Điểm nhấn", "điểm đến", "điển hình", "điện thoại", "điện toán", "đài phun nước", "Đám mây", "đánh dấu", "Đình Làng", "đô thị",
   "Đăng ký", "đơn vị", "Đại sứ", "Đại sứ quán", "đại đô thị", "đảm bảo", "đầu tiên", "đầu tư", "đắc địa", "đỉnh cao",
