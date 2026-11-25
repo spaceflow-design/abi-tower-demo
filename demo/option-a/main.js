@@ -377,19 +377,67 @@
      STACKING PLAN — isometric, clickable floors → NLA panel
      Client: typical office 10F–13F; ABI Tower office 14F–16F; rooftop above 16F.
      6/11: plans from the Vietnamese floor-plan brochure (B1 + B2 shown together), no "Tầng 14F-16F" heading.
+     25/11: single-floor plans are fp-*.webp: one frame size (1222×772) and one drawing scale, so 1F (cut from the
+     site plan) shows as large as the office floors; 2F keeps the brochure's own cut on its bottom edge. The box under
+     the text still grows or shrinks with each floor's text, so fitPlan() draws every plan at the scale of the smallest
+     box any plan floor gets at this size and leaves the rest as white space inside the card.
   ------------------------------------------------------------------ */
   const SRC = ABI.stack;
   const G = id => SRC.groups.find(g => g.id === id);
   const HOME_GROUPS = [
     { ...G("f16"), id: "rf", floors: ["R"], tag: "Rooftop", title: "Tầng thượng" },
     { ...G("f15"), id: "f14-16", floors: ["16", "15", "14"], tag: "14F – 16F", desc: "Văn phòng ABI Tower" },
-    { ...G("f10-14"), id: "f10-13", floors: ["13", "12", "11", "10"], tag: "10F – 13F", plans: ["v-10-13f.webp"], legend: ABI.LEG.office },
-    { ...G("f6-9"), plans: ["v-6-9f.webp"], legend: ABI.LEG.office },
-    { ...G("f3-5"), plans: ["v-3-5f.webp"], legend: ABI.LEG.office },
-    { ...G("f2"), plans: ["v-2f.webp"], legend: ABI.LEG.office },
-    { ...G("f1"), plans: ["v-1f.webp"], legend: ABI.LEG.lobby },
+    { ...G("f10-14"), id: "f10-13", floors: ["13", "12", "11", "10"], tag: "10F – 13F", plans: ["fp-10-13f.webp"], legend: ABI.LEG.office },
+    { ...G("f6-9"), plans: ["fp-6-9f.webp"], legend: ABI.LEG.office },
+    { ...G("f3-5"), plans: ["fp-3-5f.webp"], legend: ABI.LEG.office },
+    { ...G("f2"), plans: ["fp-2f.webp"], legend: ABI.LEG.office },
+    { ...G("f1"), plans: ["fp-1f.webp"], legend: ABI.LEG.lobby },
     { ...G("fb"), plans: ["v-b1.webp", "v-b2.webp"], planTags: ["Tầng B1", "Tầng B2"], legend: ABI.LEG.basement }
   ];
+  const fpPanel = document.querySelector(".floor-panel"), fpHead = document.querySelector(".fp-head"), fpLeg = $("fpLegend"), fpMedia = $("fpMedia");
+  const PLAN_W = 1222, PLAN_H = 772, PLAN_PAD = 8;   // fp-*.webp frame; the plan <img> keeps 8px padding (style.css)
+  let fpCur = null, fpText = null, fpTextW = 0;
+  // height of each floor's text block (header + legend) at the panel's current width, measured on hidden copies
+  const measureFpText = () => {
+    const w = fpHead.getBoundingClientRect().width;
+    if (fpText && Math.abs(w - fpTextW) < .5) return;
+    fpTextW = w; fpText = {};
+    const hp = fpHead.cloneNode(true), lp = fpLeg.cloneNode(false);
+    hp.querySelectorAll("[id]").forEach(n => n.removeAttribute("id")); lp.removeAttribute("id");
+    [hp, lp].forEach(p => { p.setAttribute("aria-hidden", "true"); p.style.cssText = `position:absolute;left:0;top:0;width:${w}px;visibility:hidden;pointer-events:none`; });
+    lp.style.display = "flex";
+    fpHead.after(hp); fpLeg.after(lp);
+    const [t, n, d] = [".fp-tag", ".fp-nla", ".fp-desc"].map(q => hp.querySelector(q));
+    const legGap = parseFloat(getComputedStyle(lp).marginTop) || 0;
+    HOME_GROUPS.forEach(g => {
+      t.textContent = g.tag; n.textContent = g.nla ? "Diện tích cho thuê: " + g.nla : ""; d.textContent = g.desc || "";
+      lp.innerHTML = ABI.legendHTML(g.legend);
+      ABI.keepWords(hp); ABI.keepWords(lp);
+      fpText[g.id] = hp.getBoundingClientRect().height + (lp.children.length ? lp.getBoundingClientRect().height + legGap : 0);
+    });
+    hp.remove(); lp.remove();
+  };
+  function fitPlan() {
+    const img = fpCur && fpMedia.querySelector(".fp-plan img");
+    if (!img || fpMedia.classList.contains("is-pair")) return;
+    const cs = getComputedStyle(fpMedia), boxW = fpMedia.clientWidth, boxH = fpMedia.clientHeight;
+    let minH = boxH;
+    if (cs.flexGrow !== "0") {           // the box flexes with the text (desktop); phones/portrait give it a set height
+      measureFpText();
+      const lo = parseFloat(cs.minHeight) || 0, hi = parseFloat(cs.maxHeight) || Infinity;
+      const last = fpLeg.offsetHeight ? fpLeg : fpMedia;
+      const free = Math.max(0, fpPanel.clientHeight - (last.offsetTop + last.offsetHeight - fpHead.offsetTop));
+      HOME_GROUPS.forEach(o => {
+        if (o.plans && o.plans.length === 1) minH = Math.min(minH, Math.min(hi, Math.max(lo, boxH + free + fpText[fpCur.id] - fpText[o.id])));
+      });
+    }
+    const sc = Math.min((boxW - 2 * PLAN_PAD) / PLAN_W, (minH - 2 * PLAN_PAD) / PLAN_H);
+    const slack = Math.max(0, boxH - 2 * PLAN_PAD - PLAN_H * sc);
+    // 2F: the brochure cuts it at the bottom, so it sits on the card's bottom edge; the others are centred
+    const top = fpCur.id === "f2" ? 2 * PLAN_PAD + slack : PLAN_PAD + slack / 2;
+    img.style.paddingTop = top + "px";
+    img.style.paddingBottom = (fpCur.id === "f2" ? 0 : PLAN_PAD + slack / 2) + "px";
+  }
   const fpEls = [$("fpTag"), $("fpNla"), $("fpDesc"), $("fpMedia"), $("fpLegend")];
   ABI.mountStacking($("iso"), {
     groups: HOME_GROUPS,
@@ -406,8 +454,12 @@
         ? g.plans.map((p, i) => `<div class="fp-plan">${g.planTags ? `<span>${g.planTags[i]}</span>` : ""}<img src="../assets/plans/${p}" alt="Mặt bằng ${g.planTags ? g.planTags[i] : g.tag}"></div>`).join("")
         : `<img src="../assets/img/${g.img}" alt="${g.title || g.tag}">`;
       $("fpLegend").innerHTML = ABI.legendHTML(g.legend);
+      fpCur = g;
+      fitPlan();
     }
   });
+  new ResizeObserver(() => fitPlan()).observe(fpPanel);
+  document.fonts && document.fonts.ready.then(() => { fpText = null; fitPlan(); });
   ABI.mountStats($("stackStats"), SRC.summary);
 
   /* ------------------------------------------------------------------
